@@ -702,7 +702,7 @@ addLayer("tree-tab",{
                     ${str}
                     <br><br><br>
                     <div>-技能只能在安全区内更换-</div>
-                    <div>-薄膜键盘上wak,wdk,asn,dsn不能同时按(作者亲测)-</div>
+                    <div>-薄膜键盘上有的键不能同时按(作者亲测)-</div>
                     `
                 }]
             ]
