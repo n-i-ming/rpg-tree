@@ -186,7 +186,7 @@ function addedPlayerData() { return {
     hp:10,hpmax:10,atk:0,def:0,mp:0,mpmax:0,mpDamageMul:1,
     mapStr:"",openId:-1,reviveMapId:1,
     hpBottle:[-1,-1],mpBottle:[-1,-1],
-    x:200,y:200,dir:0,movespeed:30.0,moveList:[],canMoveWhileAttacking:false,canTurnWhileAttacking:false,inBubble:false,
+    x:200,y:200,dir:0,rDir:0,movespeed:30.0,moveList:[],canMoveWhileAttacking:false,canTurnWhileAttacking:false,inBubble:false,
     isAttacking:false,nowAttackTime:0,attackPosition:[],nowAttackId:0,
     skillId:[2,-1,-1,-1,-1,-1,-1],skillKey:["space","j","k","l","u","i","o"],skillCoolDown:[0,0,0,0,0,0,0],chooseSkillId:-100,
     skillLevel:{

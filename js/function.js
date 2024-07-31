@@ -84,26 +84,11 @@ function DrawMap(ctx){
 }
 function DrawCharacter(ctx){
     let img=new Image()
-    let count=[]
-    if(keys["a"]==true && keys["d"]==false)count.push("a")
-    if(keys["d"]==true && keys["a"]==false)count.push("d")
-    if(keys["w"]==true && keys["s"]==false)count.push("w")
-    if(keys["s"]==true && keys["w"]==false)count.push("s")
-    let str=(player.dir==0?"Left":player.dir==1?"Right":player.dir==2?"Up":"Down")
-    if(count.length==1){
-        if(count[0]=="a"){
-            str="Left"
-        }
-        if(count[0]=="d"){
-            str="Right"
-        }
-        if(count[0]=="w"){
-            str="Up"
-        }
-        if(count[0]=="s"){
-            str="Down"
-        }
-    }
+    let str=""
+    if(player.rDir==0 || player.rDir==45 || player.rDir==315)str="Up"
+    if(player.rDir==180 || player.rDir==135 || player.rDir==225)str="Down"
+    if(player.rDir==90)str="Right"
+    if(player.rDir==270)str="Left"
     img.src="js/img/Character/Face"+str+".png"
     ctx.drawImage(img,Math.round(player.x-playerSize[0]/2),Math.round(player.y-playerSize[1]/2),playerSize[0],playerSize[1])
 }
@@ -858,37 +843,7 @@ function CalcSummonDamage(dif,ctx){
             if(keys["w"]==true && keys["s"]==false)count.push("w")
             if(keys["s"]==true && keys["w"]==false)count.push("s")
             if(player.killNumBoss0>0 && player.canTurnWhileAttacking==true){
-                if(count.length==2){
-                    if(count[0]=="a"){
-                        if(count[1]=="w")
-                        dir=315
-                        if(count[1]=="s")
-                        dir=225
-                    }
-                    if(count[0]=="d"){
-                        if(count[1]=="w")
-                        dir=45
-                        if(count[1]=="s")
-                        dir=135
-                    }
-                }
-                else if(count.length==1){
-                    if(count[0]=="a"){
-                        dir=270
-                    }
-                    if(count[0]=="d"){
-                        dir=90
-                    }
-                    if(count[0]=="w"){
-                        dir=0
-                    }
-                    if(count[0]=="s"){
-                        dir=180
-                    }
-                }
-                else{
-                    dir=[270,90,0,180][player.dir]
-                }
+                dir=player.rDir
             }
             rldis+=T.dis
             let rlx=player.x+Math.sin(dir*Math.PI/180)*rldis,rly=player.y-Math.cos(dir*Math.PI/180)*rldis
@@ -1433,47 +1388,7 @@ function DealSkill(dif){
                 if(player.weaponId==10)dis-=5
                 if(player.weaponId==11)dis+=10
                 if(player.helmetEnchantingId==1)dis+=5
-                let count=[],dir=0
-                if(keys["a"]==true && keys["d"]==false)count.push("a")
-                if(keys["d"]==true && keys["a"]==false)count.push("d")
-                if(keys["w"]==true && keys["s"]==false)count.push("w")
-                if(keys["s"]==true && keys["w"]==false)count.push("s")
-                if(player.killNumBoss0>0){
-                    if(count.length==1){
-                        if(count[0]=="a")dir=270
-                        if(count[0]=="d")dir=90
-                        if(count[0]=="w")dir=0
-                        if(count[0]=="s")dir=180
-                    }
-                    else if(count.length==2){
-                        if(count[0]=="a"){
-                            if(count[1]=="w")
-                            dir=315
-                            if(count[1]=="s")
-                            dir=225
-                        }
-                        if(count[0]=="d"){
-                            if(count[1]=="w")
-                            dir=45
-                            if(count[1]=="s")
-                            dir=135
-                        }
-                    }
-                    else{
-                        dir=[270,90,0,180][player.dir]
-                    }
-                }
-                else{
-                    if(count.length==1){
-                        if(count[0]=="a")dir=270
-                        if(count[0]=="d")dir=90
-                        if(count[0]=="w")dir=0
-                        if(count[0]=="s")dir=180
-                    }
-                    else{
-                        dir=[270,90,0,180][player.dir]
-                    }
-                }
+                let dir=player.rDir
                 if(player.skill24Switch==false){
                     player.summonList.push({belong:"me",
                                             type:"weapon",
@@ -1594,35 +1509,8 @@ function DealSkill(dif){
         }
         if(keys[key]==true){
             if(player.skillId[i]==16 && player.skillCoolDown[i]==0){
-                let deldis=player.movespeed*(3+0.5*Math.min(player.skillLevel[16].lv,4))*(0.2+0.05*Math.max(0,player.skillLevel[16].lv-4)),dir=0
-                let count=[]
-                if(keys["a"]==true && keys["d"]==false)count.push("a")
-                if(keys["d"]==true && keys["a"]==false)count.push("d")
-                if(keys["w"]==true && keys["s"]==false)count.push("w")
-                if(keys["s"]==true && keys["w"]==false)count.push("s")
-                if(count.length==1){
-                    if(count[0]=="a")dir=270
-                    if(count[0]=="d")dir=90
-                    if(count[0]=="w")dir=0
-                    if(count[0]=="s")dir=180
-                }
-                else if(count.length==2){
-                    if(count[0]=="a"){
-                        if(count[1]=="w")
-                        dir=315
-                        if(count[1]=="s")
-                        dir=225
-                    }
-                    if(count[0]=="d"){
-                        if(count[1]=="w")
-                        dir=45
-                        if(count[1]=="s")
-                        dir=135
-                    }
-                }
-                else{
-                    dir=[270,90,0,180][player.dir]
-                }
+                let deldis=player.movespeed*(3+0.5*Math.min(player.skillLevel[16].lv,4))*(0.2+0.05*Math.max(0,player.skillLevel[16].lv-4))
+                let dir=player.rDir
                 player.skillCoolDown[i]=3
                 player.skillLevel[16].mastery+=1
                 player.moveList.push({type:0,x:player.x,y:player.y,dis:deldis,dir:dir,time:0.2,realTime:0,times:0})

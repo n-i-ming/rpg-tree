@@ -120,6 +120,31 @@ function random() {
 
 addLayer("tree-tab",{
     update(diff){
+        let count=[]
+        if(keys["a"]==true && keys["d"]==false)count.push("a")
+        if(keys["d"]==true && keys["a"]==false)count.push("d")
+        if(keys["w"]==true && keys["s"]==false)count.push("w")
+        if(keys["s"]==true && keys["w"]==false)count.push("s")
+        if(count.length==1){
+            if(count[0]=="a")player.rDir=270
+            if(count[0]=="d")player.rDir=90
+            if(count[0]=="w")player.rDir=0
+            if(count[0]=="s")player.rDir=180
+        }
+        else if(count.length==2){
+            if(count[0]=="a"){
+                if(count[1]=="w")
+                    player.rDir=315
+                if(count[1]=="s")
+                    player.rDir=225
+            }
+            if(count[0]=="d"){
+                if(count[1]=="w")
+                    player.rDir=45
+                if(count[1]=="s")
+                    player.rDir=135
+            }
+        }
         player.devSpeed=1
         if(player.mapId!=5)player.boss0DamageList=[0,0,0,0]
         while(player.killNum.length<monsterName.length){
