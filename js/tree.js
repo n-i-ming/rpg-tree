@@ -1,29 +1,15 @@
-var layoutInfo = {
-    startTab: "none",
-    startNavTab: "tree-tab",
-	showTree: true,
-
-    treeLayout: ""
-
-    
-}
-
-
-// A "ghost" layer which offsets other layers in the tree
-addNode("blank", {
-    layerShown: "ghost",
-}, 
-)
 var keys = {
     w: false,a: false,s: false,d:false,
-    j:false,k:false,l:false,
+    j:false,k:false,l:false,u:false,
     n:false,m:false,
     q:false,e:false,
-    space: false,
+    space: false,shift:false,
 }
-
 function keydown(event) {
-    if(event.keyCode==32){
+    if(event.keyCode==16){
+        keys["shift"]=true;
+    }
+    else if(event.keyCode==32){
         keys["space"]=true;
     }
     else if (event.keyCode == 65) {
@@ -59,14 +45,19 @@ function keydown(event) {
         keys["s"] = true
         player.dir=3;
     }
+    else if (event.keyCode == 85) {
+        keys["u"] = true;
+    }
     else if (event.keyCode == 87) {
         keys["w"] = true;
         player.dir=2;
     }
 }
-
 function keyup(event){
-    if(event.keyCode==32){
+    if(event.keyCode==16){
+        keys["shift"]=false;
+    }
+    else if(event.keyCode==32){
         keys["space"]=false;
     }
     else if (event.keyCode == 65) {
@@ -99,12 +90,13 @@ function keyup(event){
     else if (event.keyCode == 83) {
         keys["s"] = false;
     }
+    else if (event.keyCode == 85) {
+        keys["u"] = false;
+    }
     else if (event.keyCode == 87) {
         keys["w"] = false;
     }
 }
-// You can add non-layer related variables that should to into "player" and be saved here, along with default values
-
 function random() {
     player.seed1 >>>= 0; player.seed2 >>>= 0; player.seed3 >>>= 0; player.seed4 >>>= 0;
     let cast32 = (player.seed1 + player.seed2) | 0;
@@ -116,10 +108,27 @@ function random() {
     player.seed3 = player.seed3 + cast32 | 0;
     return (cast32 >>> 0) / 4294967296;
 }
-
-
 addLayer("tree-tab",{
     update(diff){
+        //update fix
+        if(player.mapId!=5)player.boss0DamageList=[0,0,0,0]
+        while(player.killNum.length<monsterName.length){
+            player.killNum.push(0)
+        }
+        while(player.bag.length<idToName.length){
+            player.bag.push(0)
+        }
+        while(player.bagUnlock.length<idToName.length){
+            player.bagUnlock.push(false)
+        }
+        if(player.skillLevel[31]===undefined){
+            player.skillLevel[31]={mastery:0,base:100,lv:0,}
+        }
+        if(player.skillLevel[34]===undefined){
+            player.skillLevel[34]={mastery:0,base:50,lv:0,}
+        }
+        //
+
         let count=[]
         if(keys["a"]==true && keys["d"]==false)count.push("a")
         if(keys["d"]==true && keys["a"]==false)count.push("d")
@@ -146,16 +155,6 @@ addLayer("tree-tab",{
             }
         }
         player.devSpeed=1
-        if(player.mapId!=5)player.boss0DamageList=[0,0,0,0]
-        while(player.killNum.length<monsterName.length){
-            player.killNum.push(0)
-        }
-        while(player.bag.length<idToName.length){
-            player.bag.push(0)
-        }
-        while(player.bagUnlock.length<idToName.length){
-            player.bagUnlock.push(false)
-        }
         let dif=(Date.now()/1e3-player.tmtmtm)
         player.tmtmtm=Date.now()/1e3
         // dif=0.01
@@ -165,8 +164,11 @@ addLayer("tree-tab",{
         
         let my_canvas=myCanv
         let ctx=my_canvas.getContext("2d")
+        player.inShadow=Math.max(0,player.inShadow-dif)
+        player.inLight=Math.max(0,player.inLight-dif)
         
         DealBottle(dif)
+        CalcFourAttribute()
         CalcAttribute(dif)
         MoveCharacter(dif)
         player.attackPosition=[]
@@ -175,7 +177,7 @@ addLayer("tree-tab",{
         MoveMonster(dif)
         AttackMonster(dif)
         DrawMonster(ctx,dif)
-        DrawCharacter(ctx)
+        DrawCharacter(ctx,dif)
         DealSkill(dif)
         DealWeaponSkill(ctx,dif)
         CalcMonsterDamage(dif)
@@ -234,10 +236,24 @@ addLayer("tree-tab",{
                                      moveList:[],
                                      src:"BossScareCrow",
                                      buffSeq:[],
-                                     buffList:[]}]
+                                     buffList:[],
+                                     inBubble:false,}]
                 player.summonList=[]
                 player.x=200
                 player.y=300
+            }
+        }
+        if(keys["space"]==true && player.mapId==9){
+            if (CalcDis(x,y,200,370)<=20){
+                if(player.reviveMapId!=9)
+                player.logs.push({type:999,str:"成功绑定复活点 "+mapName[9]})
+                player.reviveMapId=9
+            }
+            else if (CalcDis(x,y,40,150)<=20){
+                player.openId=5
+            }
+            else if (CalcDis(x,y,40,250)<=20){
+                player.openId=6
             }
         }
         for(let i=0;i<player.skillId.length;i++){
@@ -250,10 +266,11 @@ addLayer("tree-tab",{
     },
     tabFormat: {
         "主页":{
+            buttonStyle(){return {"color":"black"}},
             content:[
                 ["row",[
                 ["display-text",function(){
-                    let s='<div style="background-color:black;height:430px;width:300px;border:2px solid white;padding-top:15px;padding-left:15px;text-align:left;overflow:auto;margin-bottom:10px;">'
+                    let s='<div style="height:430px;width:300px;border:2px solid black;padding-top:15px;padding-left:15px;text-align:left;overflow:auto;margin-bottom:10px;">'
                     s+='<div style="text-align:left;margin-left:2px">'
                     s+='等级: '+player.lv+"<br>"
                     s+='金币: '+format(player.money,1)+"<br>"
@@ -267,11 +284,11 @@ addLayer("tree-tab",{
                     +format(player.movespeed,1)+"px/s<br>"+(player.inBubble==true?"</text>":"")
                     s+='</div>'
                     s+='<table><tr>'
-                    s+='<td style="width:200px;text-align:left">力量: '+format(player.strength)+"</td><td><button onclick='Plus(0)' style='margin-left:30px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"+"</td>"
-                    s+='<td style="width:200px;text-align:left">体质: '+format(player.vitality)+"</td><td><button onclick='Plus(1)' style='margin-left:30px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"+"</td>"
+                    s+='<td style="width:200px;text-align:left">力量: '+format((keys["shift"]==true?player.strength:player.realStrength))+"</td><td><button onclick='Plus(0)' style='margin-left:30px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"+"</td>"
+                    s+='<td style="width:200px;text-align:left">体质: '+format((keys["shift"]==true?player.vitality:player.realVitality))+"</td><td><button onclick='Plus(1)' style='margin-left:30px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"+"</td>"
                     s+="</tr><tr>"
-                    s+='<td style="width:200px;text-align:left">敏捷: '+format(player.agile)   +"</td><td><button onclick='Plus(2)' style='margin-left:30px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"+"</td>"
-                    s+='<td style="width:200px;text-align:left">智力: '+format(player.wisdom)  +"</td><td><button onclick='Plus(3)' style='margin-left:30px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"+"</td>"
+                    s+='<td style="width:200px;text-align:left">敏捷: '+format((keys["shift"]==true?player.agile:player.realAgile))   +"</td><td><button onclick='Plus(2)' style='margin-left:30px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"+"</td>"
+                    s+='<td style="width:200px;text-align:left">智力: '+format((keys["shift"]==true?player.wisdom:player.realWisdom))  +"</td><td><button onclick='Plus(3)' style='margin-left:30px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"+"</td>"
                     s+="</tr></table>"
                     s+="自由属性点: "+player.freePoint+"<br><br>"
                     if(player.killNumBoss0>0){
@@ -281,7 +298,8 @@ addLayer("tree-tab",{
                         s+="穿刺时可以转向 <button onclick='player.canTurnWhileAttacking=!player.canTurnWhileAttacking'>"+(player.canTurnWhileAttacking==true?"开":"关")+"</button><br>"
                     }
                     s+='</div>'
-                    s+='WASD移动'
+                    s+='WASD移动<br>'
+                    s+='Shift查看原始四维属性'
                     return `
                     ${s}
                     `
@@ -289,11 +307,11 @@ addLayer("tree-tab",{
                 ["display-text",function(){
                     return `
                     <div>${mapName[player.mapId]}</div><br>
-                    <canvas id="my_canvas" width="400px" height="400px" style="border:2px solid white"></canvas>
+                    <canvas id="my_canvas" width="400px" height="400px" style="border:2px solid black"></canvas>
                     `
                 }],"blank",
                 ["display-text",function(){
-                    let s='日志:<br><div style="background-color:black;font-size:14px;height:410px;width:400px;border:2px solid white;padding-top:5px;padding-left:5px;text-align:left;overflow-y:auto;margin-bottom:10px;">'
+                    let s='日志:<br><div style="font-size:14px;height:410px;width:400px;border:2px solid black;padding-top:5px;padding-left:5px;text-align:left;overflow-y:auto;margin-bottom:10px;">'
                     player.minus+=Math.max(0,player.logs.length-1000)
                     player.logs=player.logs.slice(Math.max(0,player.logs.length-1000))
                     if(player.mapId==5){
@@ -362,7 +380,7 @@ addLayer("tree-tab",{
                     let x=player.x,y=player.y
                     if(player.mapId==1){
                         if(CalcDis(x,y,150,40)<=20 && player.openId==0){
-                            str+='<div style="position:relative;height:300px;width:1000px;border:2px solid white;text-align:left;padding-top:10px;padding-left:10px">'
+                            str+='<div style="position:relative;height:300px;width:1000px;border:2px solid black;text-align:left;padding-top:10px;padding-left:10px">'
                             let mn=1000000,id=0
                             for(let i=0;i<5;i++){
                                 if(player.equipmentUpLevel[i]<mn){
@@ -370,27 +388,24 @@ addLayer("tree-tab",{
                                     id=i
                                 }
                             }
-                            str+='<div>消耗 '+Math.pow(player.equipmentUpLevel[id]+1,2)*10
-                            +"枚金币 , 对"+["武器","头盔","护甲","护手","护腿"][id]+"进行一次强化 , 成功率"
-                            +equipmentUpPossibility[player.equipmentUpLevel[id]]*100+"%"
+                            str+='<div>消耗 '+format(Math.pow(player.equipmentUpLevel[id]+1,2)*10)
+                            +"枚金币 , 对"+partDisplay[id]+"栏进行一次强化 , 成功率"
+                            +format(equipmentUpPossibility[player.equipmentUpLevel[id]]*100)+"%"
                             str+="<button onclick='Upgrade("+id+")' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
                             +(player.money>=Math.pow(player.equipmentUpLevel[id]+1,2)*10?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
 
                             str+="<div>——————————————————————————————————————————————————————————————————</div>"
 
-                            str+='<div>消耗 10粘液球 , 对武器栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(0,0)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(0)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
-                            str+='<div>消耗 10哥布林<text style="color:grey">眼睛</text> , 对头盔栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(1,1)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(1)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
-                            str+='<div>消耗 10哥布林<text style="color:red">心脏</text> , 对盔甲栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(2,2)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(2)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
+                            for(let i=0;i<enchantingList[0].length;i++){
+                                let a=enchantingList[0][i][0],b=enchantingList[0][i][1]
+                                str+='<div>消耗 '+enchantingName[b]+' , 对'+partDisplay[a]+'栏进行一次附魔 , 成功率10%'
+                                str+="<button onclick='TryEnchanting("+a+","+b+")' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
+                                         +(CanEnchanting(b)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
+                            }
                             str+='</div>'
                         }
                         else if(CalcDis(x,y,250,40)<=20 && player.openId==1){
-                            str+='<div style="overflow:auto;position:relative;height:300px;width:1000px;border:2px solid white;text-align:left;padding-top:10px;padding-left:10px">'
+                            str+='<div style="overflow:auto;position:relative;height:300px;width:1000px;border:2px solid black;text-align:left;padding-top:10px;padding-left:10px">'
                             for(let i=0;i<merchantList[0].length;i++){
                                 let T=merchantList[0][i]
                                 // str+='<div>'
@@ -427,7 +442,7 @@ addLayer("tree-tab",{
                     }
                     else if(player.mapId==3){
                         if(CalcDis(x,y,200,200)<=20 && player.openId==2){
-                            str+='<div style="overflow:auto;position:relative;height:300px;width:1000px;border:2px solid white;text-align:left;padding-top:10px;padding-left:10px">'
+                            str+='<div style="overflow:auto;position:relative;height:300px;width:1000px;border:2px solid black;text-align:left;padding-top:10px;padding-left:10px">'
                             for(let i=0;i<merchantList[1].length;i++){
                                 let T=merchantList[1][i]
                                 // str+='<div>'
@@ -464,7 +479,7 @@ addLayer("tree-tab",{
                     }
                     else if(player.mapId==4){
                         if(CalcDis(x,y,150,40)<=20 && player.openId==3){
-                            str+='<div style="position:relative;height:300px;width:1000px;border:2px solid white;text-align:left;padding-top:10px;padding-left:10px">'
+                            str+='<div style="position:relative;height:300px;width:1000px;border:2px solid black;text-align:left;padding-top:10px;padding-left:10px">'
                             let mn=1000000,id=0
                             for(let i=0;i<5;i++){
                                 if(player.equipmentUpLevel[i]<mn){
@@ -472,49 +487,24 @@ addLayer("tree-tab",{
                                     id=i
                                 }
                             }
-                            str+='<div>消耗 '+Math.pow(player.equipmentUpLevel[id]+1,2)*10
-                            +"枚金币 , 对"+["武器","头盔","护甲","护手","护腿"][id]+"进行一次强化 , 成功率"
-                            +equipmentUpPossibility[player.equipmentUpLevel[id]]*100+"%"
+                            str+='<div>消耗 '+format(Math.pow(player.equipmentUpLevel[id]+1,2)*10)
+                            +"枚金币 , 对"+partDisplay[id]+"栏进行一次强化 , 成功率"
+                            +format(equipmentUpPossibility[player.equipmentUpLevel[id]]*100)+"%"
                             str+="<button onclick='Upgrade("+id+")' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
                             +(player.money>=Math.pow(player.equipmentUpLevel[id]+1,2)*10?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
 
                             str+="<div>——————————————————————————————————————————————————————————————————</div>"
 
-                            str+='<div>消耗 10狼牙 , 对武器栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(0,3)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(3)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
-                            str+='<div>消耗 10狼皮 , 对头盔栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(1,4)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(4)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
-                            str+='<div>消耗 10狼皮 , 对盔甲栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(2,4)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(4)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
-                            str+='<div>消耗 10狼皮 , 对护手栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(3,4)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(4)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
-                            str+='<div>消耗 10狼皮 , 对护腿栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(4,4)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(4)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
-                            str+='<div>消耗 1<text style="color:cyan">疾风魔核</text> , 对鞋子栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(5,5)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(5)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
-
-                            str+='<div>消耗 10<text style="color:lightblue">鱼人鳞片</text>, 对头盔栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(1,6)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(6)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
-                            str+='<div>消耗 10<text style="color:lightblue">鱼人鳞片</text> , 对盔甲栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(2,6)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(6)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
-                            str+='<div>消耗 10<text style="color:lightblue">鱼人鳞片</text> , 对护手栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(3,6)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(6)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
-                            str+='<div>消耗 10<text style="color:lightblue">鱼人鳞片</text> , 对护腿栏进行一次附魔 , 成功率10%'
-                            str+="<button onclick='TryEnchanting(4,6)' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
-                                     +(CanEnchanting(6)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
+                            for(let i=0;i<enchantingList[1].length;i++){
+                                let a=enchantingList[1][i][0],b=enchantingList[1][i][1]
+                                str+='<div>消耗 '+enchantingName[b]+' , 对'+partDisplay[a]+'栏进行一次附魔 , 成功率10%'
+                                str+="<button onclick='TryEnchanting("+a+","+b+")' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
+                                         +(CanEnchanting(b)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
+                            }
                             str+='</div>'
                         }
                         if(CalcDis(x,y,250,40)<=20 && player.openId==4){
-                            str+='<div style="overflow:auto;position:relative;height:300px;width:1000px;border:2px solid white;text-align:left;padding-top:10px;padding-left:10px">'
+                            str+='<div style="overflow:auto;position:relative;height:300px;width:1000px;border:2px solid black;text-align:left;padding-top:10px;padding-left:10px">'
                             for(let i=0;i<merchantList[2].length;i++){
                                 let T=merchantList[2][i]
                                 // str+='<div>'
@@ -549,25 +539,91 @@ addLayer("tree-tab",{
                             str+='</div>'
                         }
                     }
+                    else if(player.mapId==9){
+                        if(CalcDis(x,y,40,150)<=20 && player.openId==5){
+                            str+='<div style="position:relative;height:300px;width:1000px;border:2px solid black;text-align:left;padding-top:10px;padding-left:10px">'
+                            let mn=1000000,id=0
+                            for(let i=0;i<5;i++){
+                                if(player.equipmentUpLevel[i]<mn){
+                                    mn=player.equipmentUpLevel[i]
+                                    id=i
+                                }
+                            }
+                            str+='<div>消耗 '+format(Math.pow(player.equipmentUpLevel[id]+1,2)*10)
+                            +"枚金币 , 对"+partDisplay[id]+"栏进行一次强化 , 成功率"
+                            +format(equipmentUpPossibility[player.equipmentUpLevel[id]]*100)+"%"
+                            str+="<button onclick='Upgrade("+id+")' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
+                            +(player.money>=Math.pow(player.equipmentUpLevel[id]+1,2)*10?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
+
+                            str+="<div>——————————————————————————————————————————————————————————————————</div>"
+
+                            for(let i=0;i<enchantingList[2].length;i++){
+                                let a=enchantingList[2][i][0],b=enchantingList[2][i][1]
+                                str+='<div>消耗 '+enchantingName[b]+' , 对'+partDisplay[a]+'栏进行一次附魔 , 成功率10%'
+                                str+="<button onclick='TryEnchanting("+a+","+b+")' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
+                                         +(CanEnchanting(b)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button></div>"
+                            }
+                            str+='</div>'
+                        }
+                        if(CalcDis(x,y,40,250)<=20 && player.openId==6){
+                            str+='<div style="overflow:auto;position:relative;height:300px;width:1000px;border:2px solid black;text-align:left;padding-top:10px;padding-left:10px">'
+                            for(let i=0;i<merchantList[3].length;i++){
+                                let T=merchantList[3][i]
+                                // str+='<div>'
+                                for(let k=0;k<T[0].length;k++){
+                                    if(k>0){
+                                        str+='+'
+                                    }
+                                    if(T[0][k].length==1){
+                                        str+=T[0][k][0]+'枚金币'
+                                    }
+                                    else{
+                                        str+=T[0][k][0]+idToName[T[0][k][1]]
+                                    }
+                                }
+                                str+=' → '
+                                for(let k=0;k<T[1].length;k++){
+                                    if(k>0){
+                                        str+='+'
+                                    }
+                                    if(T[1][k].length==1){
+                                        str+=T[1][k][0]
+                                        if(T[1][k][0]!="洗点")str+='枚金币'
+                                    }
+                                    else{
+                                        str+=T[1][k][0]+idToName[T[1][k][1]]
+                                    }
+                                }
+                                str+="<button onclick='TryBuy("+3+','+i+")' style='margin-left:30px;align-items: center;height:12px;width:30px;padding-bottom:19px;padding-top:0px;padding-left:6px;'>"
+                                     +(CanBuy(3,i)?'<text style="color:green">✔</text>':'<text style="color:red">✘</text>')+"</button>"
+                                str+="<br>"
+                            }
+                            str+='</div>'
+                        }
+                    }
                     if(player.openId==-1){
                         str="<table><tr>"
                         let hpId=-1,mpId=-1
                         if(player.bag[28]>0)hpId=28
+                        if(player.bag[32]>0)hpId=32
                         if(player.bag[29]>0)mpId=29
-                        str+="<td>"+(player.hpBottle[0]==-1?(hpId==-1?"无":idToName[hpId]):idToName[player.hpBottle[0]])+"<div style='border:2px solid white;height:50px;width:50px;background-image:url(js/img/Bag/Picture"
+                        if(player.bag[33]>0)mpId=33
+                        str+="<td>"+(player.hpBottle[0]==-1?(hpId==-1?"无":idToName[hpId]):idToName[player.hpBottle[0]])+"<div style='border:2px solid black;height:50px;width:50px;background-image:url(js/img/Bag/Picture"
                         +(player.hpBottle[0]==-1?(hpId==-1?"Lock":bagPictureSrc[hpId]):bagPictureSrc[player.hpBottle[0]])+".png)'></div>"
                         +"<div>[q]<br>"+(player.hpBottle[0]==-1?0:format(player.hpBottle[1],1))+"s<br>- "+(hpId==-1?0:format(player.bag[hpId],1))+" -<br></div></td><td style='width:23px'></td>"
                         for(let i=0;i<5;i++){
                             if(player.lv>=i*15){
-                                str+="<td>"+"Lv."+(player.skillId[i]==-1?0:player.skillLevel[player.skillId[i]].lv)+"<div style='margin-left:2px;border:2px solid white;height:50px;width:50px;background-image:url(js/img/Bag/Picture"
+                                str+="<td>"+"Lv."+(player.skillId[i]==-1?0:player.skillLevel[player.skillId[i]].lv)+"<div style='margin-left:2px;border:2px solid black;height:50px;width:50px;background-image:url(js/img/Bag/Picture"
                                 +(player.skillId[i]==-1?"Lock":bagPictureSrc[player.skillId[i]])+".png)'></div><div>["+player.skillKey[i]+"]</div><div>"
                                 +format(player.skillCoolDown[i],1)+"s<br>"
-                                +(player.skillId[i]==24?player.skill24Switch==true?"开":"关":"<text style='color:#0f0f0f'>占位</text>")
+                                +(player.skillId[i]==24?(player.skill24Switch==true?"开":"关"):
+                                  player.skillId[i]==31 && player.inShadow>0?format(player.inShadow,1)+"s":
+                                  player.skillId[i]==34 && player.inLight>0?format(player.inLight,1)+"s":"<text style='color:#efefef'>占位</text>")
                                 +"</div></td>"
                             }
                         }
                         str+="<td style='width:25px'></td>"
-                        str+="<td>"+(player.mpBottle[0]==-1?(mpId==-1?"无":idToName[mpId]):idToName[player.mpBottle[0]])+"<div style='border:2px solid white;height:50px;width:50px;background-image:url(js/img/Bag/Picture"
+                        str+="<td>"+(player.mpBottle[0]==-1?(mpId==-1?"无":idToName[mpId]):idToName[player.mpBottle[0]])+"<div style='border:2px solid black;height:50px;width:50px;background-image:url(js/img/Bag/Picture"
                         +(player.mpBottle[0]==-1?(mpId==-1?"Lock":bagPictureSrc[mpId]):bagPictureSrc[player.mpBottle[0]])+".png)'></div>"
                         +"<div>[e]<br>"+(player.mpBottle[0]==-1?0:format(player.mpBottle[1],1))+"s<br>- "+(mpId==-1?0:format(player.bag[mpId],1))+" -<br></div></td>"
                         str+="</tr>"
@@ -575,7 +631,7 @@ addLayer("tree-tab",{
                         str+="<table><tr>"
                         if(player.weaponId==26){
                             str+="<td>Lv."+player.skillLevel[26].lv
-                            str+="<div style='border:2px solid white;height:50px;width:50px;background-image:url(js/img/Bag/Picture"
+                            str+="<div style='border:2px solid black;height:50px;width:50px;background-image:url(js/img/Bag/Picture"
                             +(player.weapon26Switch!=-1?"SkillWaterStab":"SkillWaterDragonWave")+".png)'></div>"
                             str+="[n]<br>"
                             str+=(player.weapon26Switch==-1?format(player.weapon26CoolDown,1):format(player.weapon26Switch,1))+"s<br>"
@@ -591,11 +647,12 @@ addLayer("tree-tab",{
             ] 
         },
         "背包":{
+            buttonStyle(){return {"color":"black"}},
             content:[
                 ["row",[
                     ["display-text",function(){
                         let str=""
-                        str+="<div style='background-color:black;position:relative;border:2px solid white;height:414px;width:400px'>"
+                        str+="<div style='position:relative;border:2px solid black;height:414px;width:400px'>"
                         str+="<div onclick='player.chooseBag="+player.helmetId+"' style='position:absolute;top:50px ;left:175px;height:50px;width:50px;background-image:url(js/img/Bag/Picture"+(player.helmetId==-1?"Lock":bagPictureSrc[player.helmetId])+".png)'></div>"
                         str+="<div onclick='player.chooseBag="+player.weaponId+"' style='position:absolute;top:150px;left:75px ;height:50px;width:50px;background-image:url(js/img/Bag/Picture"+(player.weaponId==-1?"Lock":bagPictureSrc[player.weaponId])+".png)'></div>"
                         str+="<div onclick='player.chooseBag="+player.armId   +"' style='position:absolute;top:150px;left:275px;height:50px;width:50px;background-image:url(js/img/Bag/Picture"+(player.armId   ==-1?"Lock":bagPictureSrc[player.armId   ])+".png)'></div>"
@@ -655,7 +712,13 @@ addLayer("tree-tab",{
                 ]],
                 "blank",
                 ["display-text",function(){
-                    let str="<div style='background-color:black;position:relative;height:300px;width:800px;border:2px solid white;text-align:left;padding-top:10px;padding-left:10px'>"
+                    let mn=1000000
+                    for(let i=0;i<5;i++){
+                        if(player.equipmentUpLevel[i]<mn){
+                            mn=player.equipmentUpLevel[i]
+                        }
+                    }
+                    let str="<div style='position:relative;height:400px;width:800px;border:2px solid black;text-align:left;padding-top:10px;padding-left:10px'>"
                     if(player.chooseBag!=-1 && player.chooseBag<=1000 && player.bagUnlock[player.chooseBag]){
                         str+=idToName[player.chooseBag]
                         if(equipPart[player.chooseBag].length>0){
@@ -672,9 +735,6 @@ addLayer("tree-tab",{
                         str+="<br>"
                         str+="持有数量: "+player.bag[player.chooseBag]+"<br>"+"<br>"
                         str+=bagDisplay[player.chooseBag]
-                        if(canEquip.includes(player.chooseBag)){
-                            str+=`<button onclick="TryEquip(${player.chooseBag})" style='position:absolute;height:40px;width:60px;top:250px;left:730px;background-color:black;border:2px solid white;color:white;font-size:14px'>装备</button>`
-                        }
                         if(player.chooseBag>=20 && player.chooseBag<=23){
                             let wolfPart=0
                             if(player.helmetId==20){wolfPart+=1}
@@ -694,6 +754,21 @@ addLayer("tree-tab",{
                                 str+="<br><text style='color:lime'>野狼套装 4/4 : 防御x1.2</text>"
                             }
                         }
+                        if(canEquip.includes(player.chooseBag)){
+                            if(equipPart[player.chooseBag]!="shoesId"){
+                                str+="<br>"
+                                if(mn<10){
+                                    str+="<br><text style='color:grey'>全套强化 +"+format(mn)+"/10 附加效果: 全属性+5</text>"
+                                }
+                                else{
+                                    str+="<br><text style='color:gold'>全套强化 +"+format(Math.floor(mn/10)*10)+"/"
+                                    +format(Math.floor(mn/10)*10)+" 附加效果: 全属性+"+format((Math.floor(mn/10)*(Math.floor(mn/10)+1)/2)*5)+"</text>"
+                                    str+="<br><text style='color:grey'>全套强化 +"+format(mn)+"/"
+                                    +format((Math.floor(mn/10)+1)*10)+" 附加效果: 全属性+"+format(((Math.floor(mn/10)+1)*(Math.floor(mn/10)+2)/2)*5)+"</text>"
+                                }
+                            }
+                            str+=`<button onclick="TryEquip(${player.chooseBag})" style='position:absolute;height:40px;width:60px;top:250px;left:730px;border:2px solid black;font-size:14px'>装备</button>`
+                        }
                     }
                     else if(player.chooseBag>=10000){
                         str+=enchantingDisplay[player.chooseBag-10000]
@@ -706,19 +781,20 @@ addLayer("tree-tab",{
             ]
         },
         "技能":{
+            buttonStyle(){return {"color":"black"}},
             content:[
                 ["display-text",function(){
                     let str="<table><tr>"
                     for(let i=0;i<5;i++){
                         if(player.lv>=i*15){
-                        str+="<td><div onclick='TrySkillEquip("+i+")' style='border:2px solid "+(player.chooseSkillId==player.skillId[i]?"orange":"white")+";height:50px;width:50px;background-image:url(js/img/Bag/Picture"
+                        str+="<td><div onclick='TrySkillEquip("+i+")' style='border:2px solid "+(player.chooseSkillId==player.skillId[i]?"orange":"black")+";height:50px;width:50px;background-image:url(js/img/Bag/Picture"
                         +(player.skillId[i]==-1?"Lock":bagPictureSrc[player.skillId[i]])+".png)'></div><div>["+player.skillKey[i]+"]</div></td>"
                         }
                     } 
                     str+="</tr></table><br>"
                     str+="<table><tr>"
                     for(let i=0;i<skillId.length;i++){
-                        str+="<td><div onclick='player.chooseSkillId="+skillId[i]+"' style='border:2px solid "+(player.chooseSkillId==skillId[i]?"orange":"white")
+                        str+="<td><div onclick='player.chooseSkillId="+skillId[i]+"' style='border:2px solid "+(player.chooseSkillId==skillId[i]?"orange":"black")
                         +";height:50px;width:50px;background-image:url(js/img/Bag/Picture"
                         +(player.bagUnlock[skillId[i]]==false?"Lock":bagPictureSrc[skillId[i]])+".png)'></td>"
                     }
@@ -733,6 +809,7 @@ addLayer("tree-tab",{
             ]
         },
         "图鉴":{
+            buttonStyle(){return {"color":"black"}},
             unlocked(){
                 return player.unlockBook
             },
@@ -740,16 +817,16 @@ addLayer("tree-tab",{
                 ["display-text",function(){
                     let str=""
                     str+="<table><tr>"
-                    for(let i=0;i<6;i++){
+                    for(let i=0;i<monsterName.length;i++){
                         str+="<td><div "+(player.killNum[i]>0?"onclick=player.chooseBookId="+i+" ":"")
-                        +"style='background:black;border:2px solid "+(player.chooseBookId==i?"orange":"white")+";height:50px;width:50px;background-image:url(js/img/"+
+                        +"style='border:2px solid "+(player.chooseBookId==i?"orange":"black")+";height:50px;width:50px;background-image:url(js/img/"+
                         (player.killNum[i]>0?"Monster/Monster"+monsterName[i]:"Bag/PictureLock")
                         +".png);background-position:center;background-repeat: no-repeat;'>"
                         str+="</div></td>"
                     }
                     str+="</tr></table><br><table><tr>"
                     str+="<td><div "+(player.killNumBoss0>0?"onclick=player.chooseBookId='boss0' ":"")
-                    +"style='background:black;border:2px solid "+(player.chooseBookId=="boss0"?"orange":"white")+";height:75px;width:75px;background-image:url(js/img/"+
+                    +"style='border:2px solid "+(player.chooseBookId=="boss0"?"orange":"black")+";height:75px;width:75px;background-image:url(js/img/"+
                     (player.killNumBoss0>0?"Monster/BossScareCrow":"Bag/PictureLock")
                     +".png);background-position:center;background-repeat: no-repeat;'>"
                     str+="</div></td>"
@@ -757,7 +834,7 @@ addLayer("tree-tab",{
                     return str
                 }],"blank",
                 ["display-text",function(){
-                    let str="<div style='background-color:black;height:400px;width:600px;border:2px solid white;text-align:left;padding-top:10px;padding-left:10px'>"
+                    let str="<div style='height:400px;width:600px;border:2px solid black;text-align:left;padding-top:10px;padding-left:10px'>"
                     if(player.chooseBookId=="boss0"){
                         str+="<text style='color:yellow'>稻草人</text><br>"
                         str+="击杀数量 "+player.killNumBoss0+"<br>"
@@ -796,6 +873,7 @@ addLayer("tree-tab",{
             ]
         },
         "介绍":{
+            buttonStyle(){return {"color":"black"}},
             content:[
                 ["display-text",function(){
                     let str=""

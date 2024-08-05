@@ -266,7 +266,9 @@ function DealBottle(dif){
     }
     let hpId=-1,mpId=-1
     if(player.bag[28]>0)hpId=28
+    if(player.bag[32]>0)hpId=32
     if(player.bag[29]>0)mpId=29
+    if(player.bag[33]>0)mpId=33
     if(keys["q"]==true){
         if(hpId!=-1 && player.hpBottle[0]==-1 && player.bag[hpId]>0){
             player.bag[hpId]-=1
@@ -281,7 +283,7 @@ function DealBottle(dif){
     }
 }
 function NotInSafeZone(){
-    return player.mapId!=1 && player.mapId!=3 && player.mapId!=4
+    return player.mapId!=1 && player.mapId!=3 && player.mapId!=4 && player.mapId!=9
 }
 function DealWeaponSkill(ctx,dif){
     player.weapon26CoolDown=Math.max(0,player.weapon26CoolDown-dif)
@@ -290,6 +292,11 @@ function DealWeaponSkill(ctx,dif){
             if(player.weapon26Switch==-1 && player.weapon26CoolDown==0 && player.mp>=50+20*player.skillLevel[26].lv){
                 player.weapon26Switch=10
                 player.skillLevel[26].mastery+=1
+                let dmg=(50+20*player.skillLevel[26].lv)*(1.2+0.3*player.skillLevel[26].lv)*player.mpDamageMul
+                if(player.inShadow>0){
+                    player.inShadow=0
+                }
+                player.weapon26Damage=dmg
                 player.mp-=50+20*player.skillLevel[26].lv
                 player.weapon26LogId=player.logs.length+player.minus
                 player.logs.push({type:0,str:"水龙波",damageList:[]})
@@ -349,7 +356,7 @@ function DealWeaponSkill(ctx,dif){
         for(let j=0;j<player.monsterList.length;j++){
             let y=player.monsterList[j]
             if(RectangleIntersect({x:rlx,y:rly,ep:[dir],szx:10+2*player.skillLevel[26].lv,szy:75+5*player.skillLevel[26].lv},{x:y.x,y:y.y,ep:[0],szx:y.szx,szy:y.szy},ctx)){
-                let dmg=(50+20*player.skillLevel[26].lv)*(1.2+0.3*player.skillLevel[26].lv)*player.mpDamageMul
+                let dmg=player.weapon26Damage
                 let count=Math.max(0,Math.min(dif*(dmg-y.basic.def),y.basic.hp))
                 player.monsterList[j].basic.hp-=count
                 if(player.weapon26LogsId>=player.minus){
@@ -373,4 +380,17 @@ function DealWeaponSkill(ctx,dif){
             }
         }
     }
+}
+function CalcFourAttribute(){
+    let mn=1000000
+    for(let i=0;i<5;i++){
+        if(player.equipmentUpLevel[i]<mn){
+            mn=player.equipmentUpLevel[i]
+        }
+    }
+    let equipmentUpLevelPoint=(Math.floor(mn/10)*(Math.floor(mn/10)+1)/2)*5
+    player.realStrength=player.strength+equipmentUpLevelPoint
+    player.realWisdom=player.wisdom+equipmentUpLevelPoint
+    player.realAgile=player.agile+equipmentUpLevelPoint
+    player.realVitality=player.vitality+equipmentUpLevelPoint
 }

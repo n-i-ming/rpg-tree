@@ -7,8 +7,7 @@ function DrawImage(dir,x,y,szx,szy,src,ctx){
     y=(Math.sin((Dir-dir)*Math.PI/180))*dis
     let img=new Image()
     img.src=src
-    // ctx.drawImage(img,Math.round(x-szx/2),Math.round(y-szy/2),szx,szy)
-    ctx.drawImage(img,x-szx/2,y-szy/2,szx,szy)
+    ctx.drawImage(img,Math.round(x-szx/2),Math.round(y-szy/2),szx,szy)
     ctx.rotate(-dir*Math.PI/180);
 }
 function CalcAngle(x,y,xx,yy){
@@ -32,33 +31,21 @@ function CalcAngle(x,y,xx,yy){
     }
 }
 function DrawMap(ctx){
-    ctx.fillStyle="black"
+    ctx.fillStyle="#efefef"
     ctx.beginPath()
     ctx.fillRect(0,0,400,400)
     if(player.mapId==0){
-        let img=new Image()
-        img.src="js/img/Map/BillBoardRight.png"
-        ctx.drawImage(img,360,65,20,20) // 370,75
+        DrawImage(0,370,75,20,20,"js/img/Map/BillBoardRight.png",ctx)
     }
     if(player.mapId==1){
-        let img=new Image()
-        img.src="js/img/Map/BillBoardLeft.png"
-        ctx.drawImage(img,20,65,20,20) // 30,75
-        img=new Image()
-        img.src="js/img/Map/BillBoardRight.png"
-        ctx.drawImage(img,360,315,20,20) // 370,325
-        img=new Image()
-        img.src="js/img/Map/NpcVillageIronWorker.png"
-        ctx.drawImage(img,140,30,20,20) // 150,40
-        img=new Image()
-        img.src="js/img/Map/NpcVillageMerchant.png"
-        ctx.drawImage(img,240,30,20,20) // 250,40
+        DrawImage(0,30,75,20,20,"js/img/Map/BillBoardLeft.png",ctx)
+        DrawImage(0,370,325,20,20,"js/img/Map/BillBoardRight.png",ctx)
+        DrawImage(0,150,40,20,20,"js/img/Map/NpcVillageIronWorker.png",ctx)
+        DrawImage(0,250,40,20,20,"js/img/Map/NpcVillageMerchant.png",ctx)
         DrawImage(0,200,370,20,20,"js/img/Map/SpawnPoint.png",ctx)
     }
     if(player.mapId==2){
-        let img=new Image()
-        img.src="js/img/Map/BillBoardLeft.png"
-        ctx.drawImage(img,20,315,20,20) // 30,325
+        DrawImage(0,30,325,20,20,"js/img/Map/BillBoardLeft.png",ctx)
         DrawImage(90,200,30,20,20,"js/img/Map/BillBoardLeft.png",ctx)
         DrawImage(0,370,75,20,20,"js/img/Map/BillBoardRight.png",ctx)
     }
@@ -80,9 +67,37 @@ function DrawMap(ctx){
     }
     if(player.mapId==7){
         DrawImage(90,300,30,20,20,"js/img/Map/BillBoardLeft.png",ctx)
+        DrawImage(90,300,370,20,20,"js/img/Map/BillBoardRight.png",ctx)
+    }
+    if(player.mapId==8){
+        DrawImage(90,300,30,20,20,"js/img/Map/BillBoardLeft.png",ctx)
+        DrawImage(90,300,370,20,20,"js/img/Map/BillBoardRight.png",ctx)
+    }
+    if(player.mapId==9){
+        DrawImage(90,300,30,20,20,"js/img/Map/BillBoardLeft.png",ctx)
+        DrawImage(0,40,150,20,20,"js/img/Map/NpcBigCityIronWorker.png",ctx)
+        DrawImage(0,40,250,20,20,"js/img/Map/NpcBigCityMerchant.png",ctx)
+        DrawImage(0,200,370,20,20,"js/img/Map/SpawnPoint.png",ctx)
     }
 }
-function DrawCharacter(ctx){
+function DrawCharacter(ctx,dif){
+    for(let i=0;i<player.monsterList.length;i++){
+        player.monsterList[i].inLight=false
+    }
+    if(player.inLight>0){
+        let r=(100+10*player.skillLevel[34].lv)*Math.min(10-player.inLight,1)
+        ctx.beginPath();
+        ctx.lineWidth=5
+        ctx.strokeStyle="orange"
+        ctx.arc(Math.round(player.x),Math.round(player.y),r,0,2*Math.PI);
+        ctx.stroke();
+        for(let j=0;j<player.monsterList.length;j++){
+            let TT=player.monsterList[j]
+            if(CalcDis(player.x,player.y,TT.x,TT.y)<=r+Math.min(TT.szx/2,TT.szy/2)){
+                player.monsterList[j].inLight=true
+            }
+        }
+    }
     let img=new Image()
     let str=""
     if(player.rDir==0 || player.rDir==45 || player.rDir==315)str="Up"
@@ -90,7 +105,9 @@ function DrawCharacter(ctx){
     if(player.rDir==90)str="Right"
     if(player.rDir==270)str="Left"
     img.src="js/img/Character/Face"+str+".png"
+    if(player.inShadow>0)ctx.globalAlpha=0.2
     ctx.drawImage(img,Math.round(player.x-playerSize[0]/2),Math.round(player.y-playerSize[1]/2),playerSize[0],playerSize[1])
+    ctx.globalAlpha=1
 }
 function CalcDis(x,y,a,b){
     return Math.sqrt((x-a)*(x-a)+(y-b)*(y-b))
@@ -111,7 +128,11 @@ function MoveCharacter(dif){
             }
             while(T.realTime>=(1+T.times)*0.05 && T.times<=2){
                 T.times+=1
-                let str=(player.dir==0?"Left":player.dir==1?"Right":player.dir==2?"Up":"Down")
+                let str=""
+                if(T.dir==0 || T.dir==45 || T.dir==315)str="Up"
+                if(T.dir==180 || T.dir==135 || T.dir==225)str="Down"
+                if(T.dir==90)str="Right"
+                if(T.dir==270)str="Left"
                 player.summonList.push({type:"dash",
                     x:T.x+Math.sin(T.dir*Math.PI/180)*T.dis*T.times*0.05/T.time,y:T.y-Math.cos(T.dir*Math.PI/180)*T.dis*T.times*0.05/T.time,
                     opacity:T.times*0.25,time:1,realTime:0,src:"js/img/Character/Face"+str+".png"})
@@ -214,6 +235,32 @@ function MoveCharacter(dif){
     else if(player.mapId==7 && CalcDis(x,y,300,30)<=20){
         player.mapStr="向上走 , 前往疾风城"
     }
+    else if(player.mapId==7 && CalcDis(x,y,300,370)<=20){
+        player.mapStr="向下走 , 前往暗影玄关"
+    }
+    else if(player.mapId==8 && CalcDis(x,y,300,30)<=20){
+        player.mapStr="向上走 , 前往鱼人沼泽"
+    }
+    else if(player.mapId==8 && CalcDis(x,y,300,370)<=20){
+        if(player.lv<40){
+            player.mapStr="前面的区域 , 等你40级以后再来探索吧"
+        }
+        else{
+            player.mapStr="向下走 , 前往狂兽城"
+        }
+    }
+    else if(player.mapId==9 && CalcDis(x,y,300,30)<=20){
+        player.mapStr="向上走 , 前往暗影玄关"
+    }
+    else if(player.mapId==9 && CalcDis(x,y,200,370)<=20){
+        player.mapStr="按下空格键 , 绑定复活点"
+    }
+    else if(player.mapId==9 && CalcDis(x,y,40,150)<=20){
+        player.mapStr="按下空格键 , 与铁匠交谈"
+    }
+    else if(player.mapId==9 && CalcDis(x,y,40,250)<=20){
+        player.mapStr="按下空格键 , 与商人交谈"
+    }
     else{
         player.mapStr=""
         player.openId=-1
@@ -304,6 +351,34 @@ function MoveCharacter(dif){
         player.x=300
         player.y=370
     }
+    else if(player.mapId==7 && 275<=x && x<325 && y>=385){
+        player.mapId=8
+        player.monsterList=[]
+        player.summonList=[]
+        player.x=300
+        player.y=30
+    }
+    else if(player.mapId==8 && 275<=x && x<=325 && y<=15){
+        player.mapId=7
+        player.monsterList=[]
+        player.summonList=[]
+        player.x=300
+        player.y=370
+    }
+    else if(player.mapId==8 && player.lv>=40 && 275<=x && x<325 && y>=385){
+        player.mapId=9
+        player.monsterList=[]
+        player.summonList=[]
+        player.x=300
+        player.y=30
+    }
+    else if(player.mapId==9 && 275<=x && x<=325 && y<=15){
+        player.mapId=8
+        player.monsterList=[]
+        player.summonList=[]
+        player.x=300
+        player.y=370
+    }
     else if(player.x<5 || player.x>395 || player.y<5 || player.y>395){
         player.x=xx,player.y=yy
     }
@@ -311,94 +386,31 @@ function MoveCharacter(dif){
 }
 const namename=["hp","hpmax","atk","def"]
 function SummonMonster(){
-    if(player.mapId==0){
-        if(player.monsterList.length<5){
-            let x=random()*(400-monsterSize[0][0]/2)+monsterSize[0][0]/2,y=random()*(400-monsterSize[0][1]/2)+monsterSize[0][1]/2
-            let xxx={hp:0,hpmax:0,atk:0,def:0}
-            for(let i=0;i<4;i++){
-                xxx[namename[i]]=monsterBasic[0][namename[i]]
-            }
-            player.monsterList.push({id:0,
-                                     x:x,
-                                     y:y,
-                                     szx:monsterSize[0][0],
-                                     szy:monsterSize[0][1],
-                                     basic:xxx,
-                                     dir:Math.min(Math.floor(random()*4),3),
-                                     attackTime:0,
-                                     moveList:[],
-                                     buffSeq:[],
-                                     buffList:[],
-                                     inBubble:false,})
+    let id=-1
+    if(player.mapId==0 && player.monsterList.length<5)id=0
+    if(player.mapId==2 && player.monsterList.length<7)id=Math.floor(random()*2)+1
+    if(player.mapId==6 && player.monsterList.length<8)id=(random()<=0.95?3:4)
+    if(player.mapId==7 && player.monsterList.length<8)id=5
+    if(player.mapId==8 && player.monsterList.length<9)id=6
+    if(id!=-1){
+        let x=random()*(400-monsterSize[id][0]/2)+monsterSize[id][0]/2,y=random()*(400-monsterSize[id][1]/2)+monsterSize[id][1]/2
+        let xxx={hp:0,hpmax:0,atk:0,def:0}
+        for(let i=0;i<4;i++){
+            xxx[namename[i]]=monsterBasic[id][namename[i]]
         }
-    }
-    if(player.mapId==2){
-        if(player.monsterList.length<7){
-            let id=Math.floor(random()*2)+1
-            let x=random()*(400-monsterSize[id][0]/2)+monsterSize[id][0]/2,y=random()*(400-monsterSize[id][1]/2)+monsterSize[id][1]/2
-            let xxx={hp:0,hpmax:0,atk:0,def:0}
-            for(let i=0;i<4;i++){
-                xxx[namename[i]]=monsterBasic[id][namename[i]]
-            }
-            player.monsterList.push({id:id,
-                                     x:x,
-                                     y:y,
-                                     szx:monsterSize[id][0],
-                                     szy:monsterSize[id][1],
-                                     basic:xxx,
-                                     dir:Math.min(Math.floor(random()*4),3),
-                                     attackTime:0,
-                                     moveList:[],
-                                     buffSeq:[],
-                                     buffList:[],
-                                     inBubble:false,})
-        }
-    }
-    if(player.mapId==6){
-        if(player.monsterList.length<8){
-            let id=0
-            if(random()<=0.95)id=3
-            else id=4
-            let x=random()*(400-monsterSize[id][0]/2)+monsterSize[id][0]/2,y=random()*(400-monsterSize[id][1]/2)+monsterSize[id][1]/2
-            let xxx={hp:0,hpmax:0,atk:0,def:0}
-            for(let i=0;i<4;i++){
-                xxx[namename[i]]=monsterBasic[id][namename[i]]
-            }
-            player.monsterList.push({id:id,
-                                     x:x,
-                                     y:y,
-                                     szx:monsterSize[id][0],
-                                     szy:monsterSize[id][1],
-                                     basic:xxx,
-                                     dir:Math.min(Math.floor(random()*4),3),
-                                     attackTime:0,
-                                     moveList:[],
-                                     buffSeq:[],
-                                     buffList:[],
-                                     inBubble:false,})
-        }
-    }
-    if(player.mapId==7){
-        if(player.monsterList.length<8){
-            let id=5
-            let x=random()*(400-monsterSize[id][0]/2)+monsterSize[id][0]/2,y=random()*(400-monsterSize[id][1]/2)+monsterSize[id][1]/2
-            let xxx={hp:0,hpmax:0,atk:0,def:0}
-            for(let i=0;i<4;i++){
-                xxx[namename[i]]=monsterBasic[id][namename[i]]
-            }
-            player.monsterList.push({id:id,
-                                     x:x,
-                                     y:y,
-                                     szx:monsterSize[id][0],
-                                     szy:monsterSize[id][1],
-                                     basic:xxx,
-                                     dir:Math.min(Math.floor(random()*4),3),
-                                     attackTime:0,
-                                     moveList:[],
-                                     buffSeq:[],
-                                     buffList:[],
-                                     inBubble:false,})
-        }
+        player.monsterList.push({id:id,
+                                 x:x,
+                                 y:y,
+                                 szx:monsterSize[id][0],
+                                 szy:monsterSize[id][1],
+                                 basic:xxx,
+                                 dir:Math.min(Math.floor(random()*4),3),
+                                 attackTime:0,
+                                 moveList:[],
+                                 buffSeq:[],
+                                 buffList:[],
+                                 inBubble:false,
+                                 inLight:false})
     }
 }
 function MoveMonster(dif){
@@ -472,7 +484,7 @@ function MoveMonster(dif){
         let nx=T.x,ny=T.y
         let dis=Math.sqrt((player.x-player.monsterList[i].x)*(player.x-player.monsterList[i].x)+(player.y-player.monsterList[i].y)*(player.y-player.monsterList[i].y))
         let moveMul=0.2
-        if(dis<=monsterBasic[player.monsterList[i].id].hatredRadius && dis>=monsterBasic[player.monsterList[i].id].stopMoveRadius){
+        if(dis<=monsterBasic[player.monsterList[i].id].hatredRadius && dis>=monsterBasic[player.monsterList[i].id].stopMoveRadius && player.inShadow==0){
             moveMul=1
             let delx=player.x-player.monsterList[i].x,dely=player.y-player.monsterList[i].y
             if(delx<0 && Math.abs(dely)<Math.abs(delx)){
@@ -530,6 +542,7 @@ function AttackMonster(dif){
                 }
                 if(T.nextAttackId==2){
                     player.summonList.push({type:"wave",
+                                            subType:"boss0",
                                             radius:100,
                                             x:T.x,
                                             y:T.y,
@@ -611,6 +624,14 @@ function AttackMonster(dif){
                                             time:5,
                                             realTime:0})
                 }
+            }
+            else if(T.id==6){
+                player.monsterList[i].moveList.push({times:1,
+                                                     logsId:player.logs.length+player.minus,
+                                                     delx:(player.x-T.x)*2,
+                                                     dely:(player.y-T.y)*2,
+                                                     time:1,realTime:0})
+                player.logs.push({type:2,id:T.id,damage:0})
             }
         }
     }
@@ -747,7 +768,7 @@ function CalcSummonDamage(dif,ctx){
     }
     player.inBubble=false
     for(let i=0;i<player.monsterList.length;i++){
-        player.inBubble=false
+        player.monsterList[i].inBubble=false
     }
     for(let i=0;i<player.summonList.length;i++){
         let T=player.summonList[i]
@@ -933,24 +954,26 @@ function CalcSummonDamage(dif,ctx){
             ctx.globalAlpha=1
         }
         if(T.type=="wave"){
-            if(T.realTime>=2.5){
-                player.summonList.splice(i,1)
-                i--
-                continue
-            }
-            let r=T.radius*Math.min(T.realTime/2,1)
-            ctx.beginPath();
-            ctx.lineWidth=5
-            ctx.strokeStyle="yellow"
-            ctx.arc(T.x,T.y,r,0,2*Math.PI);
-            ctx.stroke();
-            if(CalcDis(player.x,player.y,T.x,T.y)<=r+Math.min(playerSize[0]/2,playerSize[1]/2)){
-                let count=Math.max(0,Math.min(dif*(T.damage-player.def),player.hp))
-                player.hp-=count
-                player.boss0DamageList[2]+=count
-                if(player.hp<=0.0001){
-                    Revive()
-                    return
+            if(T.subType=="boss0"){
+                if(T.realTime>=2.5){
+                    player.summonList.splice(i,1)
+                    i--
+                    continue
+                }
+                let r=T.radius*Math.min(T.realTime/2,1)
+                ctx.beginPath();
+                ctx.lineWidth=5
+                ctx.strokeStyle="yellow"
+                ctx.arc(T.x,T.y,r,0,2*Math.PI);
+                ctx.stroke();
+                if(CalcDis(player.x,player.y,T.x,T.y)<=r+Math.min(playerSize[0]/2,playerSize[1]/2)){
+                    let count=Math.max(0,Math.min(dif*(T.damage-player.def),player.hp))
+                    player.hp-=count
+                    player.boss0DamageList[2]+=count
+                    if(player.hp<=0.0001){
+                        Revive()
+                        return
+                    }
                 }
             }
         }
@@ -1040,6 +1063,10 @@ function DrawMonster(ctx,dif){
             }
             let src="js/img/Monster/BossScareCrow.png",src1="js/img/Monster/BossScareCrowArm.png"
             DrawImage(T.dir,T.x,T.y,T.szx,T.szy,src,ctx)
+            if(T.inBubble==true){
+                ctx.fillStyle="rgba(0,0,255,0.1)";
+                ctx.fillRect(Math.round(T.x-T.szx/2),Math.round(T.y-T.szy/2),T.szx,T.szy);
+            }
             let delx=0,dely=0
             if(T.nextAttackId==1){
                 if(T.attackTime>=time-2){
@@ -1072,20 +1099,28 @@ function DrawMonster(ctx,dif){
             }
             continue
         }
-        img.src="js/img/Monster/Monster"+monsterName[T.id]+".png"
-        ctx.drawImage(img,Math.round(T.x-T.szx/2),Math.round(T.y-T.szy/2),T.szx,T.szy)
-        if(dis<=monsterBasic[player.monsterList[i].id].hatredRadius){
+        if(dis<=monsterBasic[player.monsterList[i].id].hatredRadius && player.inShadow==0){
             if(dis<=monsterBasic[player.monsterList[i].id].attackRadius && player.monsterList[i].moveList.length==0){
                 player.monsterList[i].attackTime=Math.min(player.monsterList[i].attackTime+dif*difMul,monsterBasic[player.monsterList[i].id].attackSpeed)
             }
-            let color='rgba(255,0,0,'+Math.min((player.monsterList[i].attackTime/monsterBasic[player.monsterList[i].id].attackSpeed/2+0.2),0.7)+')';
-            ctx.fillStyle=color;
-            ctx.fillRect(Math.round(T.x-T.szx/2),Math.round(T.y-T.szy/2),T.szx,T.szy);
             player.haveMonsterHatred=true
         }
         else{
             player.monsterList[i].attackTime=0
         }
+        let opacity=1
+        if(T.id==6){
+            opacity=(T.attackTime)
+            if(T.moveList.length!=0){
+                opacity=1
+            }
+        }
+        if(T.inLight==true){
+            opacity=Math.max(opacity,0.5)
+        }
+        img.src="js/img/Monster/Monster"+monsterName[T.id]+".png"
+        ctx.globalAlpha=opacity
+        ctx.drawImage(img,T.x-T.szx/2,T.y-T.szy/2,T.szx,T.szy)
         if(T.buffList.length>0){
             let x=T.x-3.5-4.5*(Math.max(T.buffList.length-1,0)),y=T.y-T.szy/2-11
             for(let j=0;j<T.buffList.length;j++){
@@ -1095,12 +1130,23 @@ function DrawMonster(ctx,dif){
                 x+=9
             }
         }
+        if(T.inBubble==true){
+            ctx.fillStyle="rgba(0,0,255,0.1)";
+            ctx.fillRect(Math.round(T.x-T.szx/2),Math.round(T.y-T.szy/2),T.szx,T.szy);
+        }
+        if(dis<=monsterBasic[player.monsterList[i].id].hatredRadius && player.inShadow==0){
+            let color='rgba(255,0,0,'+Math.min((player.monsterList[i].attackTime/monsterBasic[player.monsterList[i].id].attackSpeed/2+0.2),0.7)+')';
+            ctx.fillStyle=color;
+            if(T.id!=6)
+            ctx.fillRect(Math.round(T.x-T.szx/2),Math.round(T.y-T.szy/2),T.szx,T.szy);
+        }
         ctx.lineWidth=2
         ctx.strokeStyle="red"
         ctx.beginPath()
         ctx.moveTo(Math.round(T.x-T.szx/2),Math.round(T.y-T.szy/2-2))
         ctx.lineTo(Math.round(T.x-T.szx/2+monsterSize[T.id][0]*T.basic.hp/T.basic.hpmax),Math.round(T.y-T.szy/2-2))
         ctx.stroke()
+        ctx.globalAlpha=1
     }
 }
 function ExpMaxCalc(){
@@ -1135,7 +1181,6 @@ function Drop(id){
     if(id=="boss0"){
         if(player.killNumBoss0==0){
             player.logs.push({type:999,str:"现在你可以在使用 穿刺 时移动了"})
-            player.logs.push({type:999,str:"现在你可以向8个方向使用 穿刺 了"})
         }
         player.logs.push({type:999,str:"恭喜你成功击败 Lv30试炼官-稻草人"})
         player.mapId=4
@@ -1149,7 +1194,7 @@ function Drop(id){
     player.killNum[id]+=1
     let str="你击杀了 "+monsterDisplayName[id]+" , 获得了"
     player.exp+=monsterDrop[id][0]
-    str+=" "+monsterDrop[id][0]+"点<text style='color:lime'>经验</text>"
+    str+=" "+monsterDrop[id][0]+"点<text style='color:#00bf00'>经验</text>"
     player.money+=monsterDrop[id][1]
     str+=" "+monsterDrop[id][1]+"枚<text style='color:gold'>金币</text>"
     for(let i=0;i<monsterDrop[id][2].length;i++){
@@ -1269,7 +1314,7 @@ function CalcAttribute(dif){
         partMul[i]=1+0.05*player.equipmentUpLevel[i]
     }//武器 头盔 护甲 护手 护腿
 
-    player.hpmax=10+10*player.vitality
+    player.hpmax=10+10*player.realVitality
     if(player.helmetId==4){player.hpmax+=20*partMul[1]}
     if(player.helmetId==20){player.hpmax+=100*partMul[1]}
     if(player.armId==5){player.hpmax+=10*partMul[3]}
@@ -1286,11 +1331,13 @@ function CalcAttribute(dif){
     if(player.mapId==1){hpRe+=1}
     if(player.mapId==3){hpRe+=3}
     if(player.mapId==4){hpRe+=5}
+    if(player.mapId==9){hpRe+=10}
     if(player.hpBottle[0]==28){hpRe+=10}
+    if(player.hpBottle[0]==32){hpRe+=20}
     player.hp+=hpRe*dif
     player.hp=Math.max(0,Math.min(player.hp,player.hpmax))
 
-    player.atk=0+1*player.strength
+    player.atk=0+1*player.realStrength
     if(player.armId==5){player.atk+=1*partMul[3]}
     if(player.armId==21){player.atk+=5*partMul[3]}
     if(player.legId==7){player.atk+=1*partMul[4]}
@@ -1310,7 +1357,7 @@ function CalcAttribute(dif){
     if(player.shoesId==1){player.movespeed=30}
     if(player.shoesId==9){player.movespeed=35}
     if(player.shoesEnchantingId==5){player.movespeed+=5}
-    let xxx=(1+0.02*player.agile)
+    let xxx=(1+0.02*player.realAgile)
     if(xxx>1.2){
         xxx=1.2*Math.pow(xxx/1.2,0.8)
     }
@@ -1330,7 +1377,7 @@ function CalcAttribute(dif){
         player.movespeed*=0.5
     }
 
-    player.mpmax=0+5*player.wisdom
+    player.mpmax=0+5*player.realWisdom
     if(player.armorEnchantingId==2){player.mpmax+=20}
     if(player.helmetEnchantingId==6){player.mpmax+=20}
     if(player.armorEnchantingId==6){player.mpmax+=20}
@@ -1341,14 +1388,16 @@ function CalcAttribute(dif){
     player.mpDamageMul=1
     if(player.mapId==1){mpRe+=0.5}
     if(player.mapId==3){mpRe+=1.5}
-    if(player.mapId==4){mpRe+=5}
+    if(player.mapId==4){mpRe+=2.5}
+    if(player.mapId==9){mpRe+=5}
     if(player.mpBottle[0]==29){mpRe+=5}
+    if(player.mpBottle[0]==33){mpRe+=10}
     if(player.helmetEnchantingId==6){mpRe+=1,player.mpDamageMul*=1.1}
     if(player.armorEnchantingId==6){mpRe+=1,player.mpDamageMul*=1.1}
     if(player.armEnchantingId==6){mpRe+=1,player.mpDamageMul*=1.1}
     if(player.legEnchantingId==6){mpRe+=1,player.mpDamageMul*=1.1}
     if(player.weaponId==26){player.mpDamageMul*=1.5}
-    player.mpDamageMul*=(1+0.01*player.wisdom)
+    player.mpDamageMul*=(1+0.01*player.realWisdom)
     player.mp+=mpRe*dif
     if(player.skill24Switch==true){
         player.mp-=5*dif
@@ -1390,6 +1439,14 @@ function DealSkill(dif){
                 if(player.helmetEnchantingId==1)dis+=5
                 let dir=player.rDir
                 if(player.skill24Switch==false){
+                    let mul=1+0.1*player.skillLevel[2].lv
+                    if(player.inShadow>0){
+                        player.inShadow=0
+                        if(player.weaponId==30){
+                            mul*=(1.5+0.1*player.skillLevel[31].lv)
+                        }
+                        mul*=(1.5+0.1*player.skillLevel[31].lv)
+                    }
                     player.summonList.push({belong:"me",
                                             type:"weapon",
                                             subType:"main",
@@ -1398,7 +1455,7 @@ function DealSkill(dif){
                                             deldis:dis,
                                             dis:7+weaponSize[id][1]/2,
                                             dir:dir,
-                                            mul:1+0.1*player.skillLevel[2].lv,
+                                            mul:mul,
                                             opacity:1,
                                             weaponDamage:weaponDamage[id],
                                             logsId:player.logs.length+player.minus,
@@ -1406,6 +1463,13 @@ function DealSkill(dif){
                     player.logs.push({type:0,str:idToName[2],damageList:[]})
                 }
                 else{
+                    let mul=0.5+0.1*player.skillLevel[24].lv
+                    if(player.inShadow>0){
+                        player.inShadow=0
+                        if(player.weaponId==30){
+                            mul*=(1.5+0.1*player.skillLevel[31].lv)
+                        }
+                    }
                     player.summonList.push({belong:"me",
                                             type:"weapon",
                                             subType:"main",
@@ -1414,7 +1478,7 @@ function DealSkill(dif){
                                             deldis:dis,
                                             dis:7+weaponSize[id][1]/2,
                                             dir:dir,
-                                            mul:0.5+0.1*player.skillLevel[24].lv,
+                                            mul:mul,
                                             opacity:0.5+0.1*player.skillLevel[24].lv,
                                             weaponDamage:weaponDamage[id],
                                             logsId:player.logs.length+player.minus,
@@ -1427,7 +1491,7 @@ function DealSkill(dif){
                                             deldis:dis,
                                             dis:7+weaponSize[id][1]/2,
                                             dir:dir,
-                                            mul:0.5+0.1*player.skillLevel[24].lv,
+                                            mul:mul,
                                             opacity:0.5+0.1*player.skillLevel[24].lv,
                                             weaponDamage:weaponDamage[id],
                                             logsId:player.logs.length+player.minus,
@@ -1440,7 +1504,7 @@ function DealSkill(dif){
                                             deldis:dis,
                                             dis:7+weaponSize[id][1]/2,
                                             dir:dir,
-                                            mul:0.5+0.1*player.skillLevel[24].lv,
+                                            mul:mul,
                                             opacity:0.5+0.1*player.skillLevel[24].lv,
                                             weaponDamage:weaponDamage[id],
                                             logsId:player.logs.length+player.minus,
@@ -1465,6 +1529,9 @@ function DealSkill(dif){
                 player.mp-=4+4*player.skillLevel[15].lv
                 player.skillLevel[15].mastery+=1
                 let dmg=(4+4*player.skillLevel[15].lv)*(2+0.2*player.skillLevel[15].lv)*player.mpDamageMul
+                if(player.inShadow>0){
+                    player.inShadow=0
+                }
                 player.summonList.push({belong:"me",
                                         type:"throw",
                                         subType:11,
@@ -1494,6 +1561,9 @@ function DealSkill(dif){
                 player.skillCoolDown[i]=10
                 player.mp-=10+2*player.skillLevel[27].lv
                 player.skillLevel[27].mastery+=1
+                if(player.inShadow>0){
+                    player.inShadow=0
+                }
                 player.summonList.push({belong:"me",
                                         type:"ball",
                                         subType:"water",
@@ -1515,11 +1585,25 @@ function DealSkill(dif){
                 player.skillLevel[16].mastery+=1
                 player.moveList.push({type:0,x:player.x,y:player.y,dis:deldis,dir:dir,time:0.2,realTime:0,times:0})
             }
-            if(player.skillId[i]==24 && player.skillCoolDown[i]==0){
-                if(player.mp>0){
-                    player.skillCoolDown[i]=1
-                    player.skill24Switch=!player.skill24Switch
-                }
+            if(player.skillId[i]==24 && player.skillCoolDown[i]==0 && player.mp>0){
+                player.skillCoolDown[i]=1
+                player.skill24Switch=!player.skill24Switch
+            }
+            if(player.skillId[i]==31 && player.skillCoolDown[i]==0 && player.mp>=10+2*player.skillLevel[31].lv){
+                player.mp-=10+2*player.skillLevel[31].lv
+                player.skillCoolDown[i]=10
+                player.skillLevel[31].mastery+=1
+                player.inShadow=2.5
+            }
+            if(player.skillId[i]==34 && player.skillCoolDown[i]==0 && player.mp>=10+2*player.skillLevel[34].lv){
+                player.mp-=10+2*player.skillLevel[34].lv
+                player.skillCoolDown[i]=15
+                player.skillLevel[34].mastery+=1
+                // player.summonList.push({type:"wave",
+                //                         subType:"light",
+                //                         radius:100+10*player.skillLevel[34].lv,
+                //                         realTime:0,})
+                player.inLight=10
             }
         }
     }

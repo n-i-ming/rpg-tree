@@ -1,3 +1,12 @@
+var layoutInfo = {
+    startTab: "none",
+    startNavTab: "tree-tab",
+	showTree: true,
+
+    treeLayout: ""
+
+    
+}
 //快捷调用+提高运算速度
 var zero = new OmegaNum(0)
 var one = new OmegaNum(1)

@@ -59,7 +59,7 @@ body {
 	color: var(--color);
 	overflow: hidden;
 	--background: #0f0f0f;
-	--color: #dfdfdf;
+	--color: black;
 	--points: #ffffff;
 	background: var(--background)
 }

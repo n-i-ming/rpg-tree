@@ -40,7 +40,7 @@
 
 
 <body onload="load()" onmousemove="updateMouse(event)" onkeydown="keydown(event)" onkeyup="keyup(event)">
-	<div id="app">
+	<div id="app" style="color:black">
 		<canvas id="treeCanvas" class="canvas" v-if="!(gameEnded && !player.keepGoing)"></canvas>
 
 		<div v-if="false" id="loadingSection" class="fullWidth">
@@ -92,7 +92,7 @@
 				</ul>
 
 			</div>
-			<div style="margin-top:8px;">目前结局:收集前30个物品</div>
+			<div style="margin-top:8px;">目前结局:收集前35个物品</div>
 			<overlay-head v-if="!(gameEnded && !player.keepGoing)"></overlay-head>
 			<div class="sideLayers">
 				<div v-for="(node, index) in OTHER_LAYERS['side']">

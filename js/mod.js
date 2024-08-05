@@ -12,11 +12,17 @@
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.04",
+	num: "0.05",
 	name: "",
 }
 
 let changelog = `<h1>更新记录:</h1><br>
+	<h3>2024.8.4 v0.05</h3><br>
+		- 强化到10的整数倍级时会有全属性加成<br>
+		- 5个新的物品<br>
+		- 2张新的地图<br>
+		- 1种新的怪物<br>
+		- 2种新的技能<br><br>
 	<h3>2024.7.26 v0.04</h3><br>
 		- 凝聚长矛冷却缩减至3秒<br>
 		- 介绍系统<br>
