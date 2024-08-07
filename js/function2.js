@@ -89,6 +89,14 @@ function CanEnchanting(id){
         if(player.bag[25]<10)return false
         return true
     }
+    if(id==7){
+        if(player.bag[36]<30)return false
+        return true
+    }
+    if(id==8){
+        if(player.bag[44]<10)return false
+        return true
+    }
 }
 function TryEnchanting(i,id){
     if(id==0){
@@ -162,6 +170,28 @@ function TryEnchanting(i,id){
         player.bag[25]-=10
         if(random()<=0.1){
             player[partName[i]]=6
+            player.logs.push({type:999,str:"<text style='color:gold'>恭喜你 , 你附魔成功了</text>"})
+        }
+        else{
+            player.logs.push({type:999,str:"<text style='color:grey'>你附魔失败了</text>"})
+        }
+    }
+    if(id==7){
+        if(player.bag[36]<30)return
+        player.bag[36]-=30
+        if(random()<=0.1){
+            player[partName[i]]=7
+            player.logs.push({type:999,str:"<text style='color:gold'>恭喜你 , 你附魔成功了</text>"})
+        }
+        else{
+            player.logs.push({type:999,str:"<text style='color:grey'>你附魔失败了</text>"})
+        }
+    }
+    if(id==8){
+        if(player.bag[44]<10)return
+        player.bag[44]-=10
+        if(random()<=0.1){
+            player[partName[i]]=8
             player.logs.push({type:999,str:"<text style='color:gold'>恭喜你 , 你附魔成功了</text>"})
         }
         else{
@@ -299,7 +329,7 @@ function DealWeaponSkill(ctx,dif){
                 player.weapon26Damage=dmg
                 player.mp-=50+20*player.skillLevel[26].lv
                 player.weapon26LogId=player.logs.length+player.minus
-                player.logs.push({type:0,str:"水龙波",damageList:[]})
+                player.logs.push({type:0,str:"<text style='color:blue'>水龙波</text>",damageList:[]})
             }
         }
     }
@@ -359,17 +389,18 @@ function DealWeaponSkill(ctx,dif){
                 let dmg=player.weapon26Damage
                 let count=Math.max(0,Math.min(dif*(dmg-y.basic.def),y.basic.hp))
                 player.monsterList[j].basic.hp-=count
-                if(player.weapon26LogsId>=player.minus){
+                if(player.weapon26LogId>=player.minus){
                     let hs=false
-                    for(let k=0;k<player.logs[player.weapon26LogsId-player.minus].damageList.length;k++){
-                        if(player.logs[player.weapon26LogsId-player.minus].damageList[k][0]==y.id){
-                            player.logs[player.weapon26LogsId-player.minus].damageList[k][1]+=count
+                    for(let k=0;k<player.logs[player.weapon26LogId-player.minus].damageList.length;k++){
+                        if(player.logs[player.weapon26LogId-player.minus].damageList[k][0]==y.id){
+                            player.logs[player.weapon26LogId-player.minus].damageList[k][1]+=count
                             hs=true
                             break
                         }
                     }
+                    console.log(hs)
                     if(!hs){
-                        player.logs[player.weapon26LogsId-player.minus].damageList.push([y.id,count])
+                        player.logs[player.weapon26LogId-player.minus].damageList.push([y.id,count])
                     }
                 }
                 if(player.monsterList[j].basic.hp<=0.00001){

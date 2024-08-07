@@ -77,12 +77,30 @@ function DrawMap(ctx){
         DrawImage(90,300,30,20,20,"js/img/Map/BillBoardLeft.png",ctx)
         DrawImage(0,40,150,20,20,"js/img/Map/NpcBigCityIronWorker.png",ctx)
         DrawImage(0,40,250,20,20,"js/img/Map/NpcBigCityMerchant.png",ctx)
+        DrawImage(0,200,200,27,31,"js/img/Map/NpcBigCityOwner.png",ctx)
+        DrawImage(90,100,370,20,20,"js/img/Map/BillBoardRight.png",ctx)
         DrawImage(0,200,370,20,20,"js/img/Map/SpawnPoint.png",ctx)
+    }
+    if(player.mapId==10){
+        DrawImage(90,100,30,20,20,"js/img/Map/BillBoardLeft.png",ctx)
+        DrawImage(90,100,370,20,20,"js/img/Map/BillBoardRight.png",ctx)
+    }
+    if(player.mapId==11){
+        DrawImage(90,100,30,20,20,"js/img/Map/BillBoardLeft.png",ctx)
     }
 }
 function DrawCharacter(ctx,dif){
     for(let i=0;i<player.monsterList.length;i++){
         player.monsterList[i].inLight=false
+    }
+    for(let i=0;i<player.buffList.length;i++){
+        player.buffList[i][1]-=dif
+        if(player.buffList[i][1]<0){
+            player.buffList.splice(i,1)
+            player.buffSeq.splice(i,1)
+            i--
+            continue
+        }
     }
     if(player.inLight>0){
         let r=(100+10*player.skillLevel[34].lv)*Math.min(10-player.inLight,1)
@@ -107,6 +125,19 @@ function DrawCharacter(ctx,dif){
     img.src="js/img/Character/Face"+str+".png"
     if(player.inShadow>0)ctx.globalAlpha=0.2
     ctx.drawImage(img,Math.round(player.x-playerSize[0]/2),Math.round(player.y-playerSize[1]/2),playerSize[0],playerSize[1])
+    let x=player.x,y=player.y-playerSize[1]/2-2
+    for(let j=0;j<player.buffList.length;j++){
+        x-=buffSize[player.buffList[j][0]][0]/2
+        if(j>0){
+            x-=1
+        }
+    }
+    for(let j=0;j<player.buffList.length;j++){
+        img=new Image()
+        img.src="js/img/Monster/Buff"+buffSrc[player.buffList[j][0]]+".png"
+        ctx.drawImage(img,Math.round(x),Math.round(y-buffSize[player.buffList[j][0]][1]),buffSize[player.buffList[j][0]][0],buffSize[player.buffList[j][0]][1])
+        x+=2+buffSize[player.buffList[j][0]][0]
+    }
     ctx.globalAlpha=1
 }
 function CalcDis(x,y,a,b){
@@ -261,6 +292,21 @@ function MoveCharacter(dif){
     else if(player.mapId==9 && CalcDis(x,y,40,250)<=20){
         player.mapStr="按下空格键 , 与商人交谈"
     }
+    else if(player.mapId==9 && CalcDis(x,y,200,200)<=20){
+        player.mapStr="按下空格键 , 与城主交谈"
+    }
+    else if(player.mapId==9 && CalcDis(x,y,100,370)<=20){
+        player.mapStr="向下走 , 前往兽人部落外围"
+    }
+    else if(player.mapId==10 && CalcDis(x,y,100,30)<=20){
+        player.mapStr="向上走 , 前往狂兽城"
+    }
+    else if(player.mapId==10 && CalcDis(x,y,100,370)<=20){
+        player.mapStr="向下走 , 前往兽人部落深处"
+    }
+    else if(player.mapId==11 && CalcDis(x,y,100,30)<=20){
+        player.mapStr="向上走 , 前往兽人部落外围"
+    }
     else{
         player.mapStr=""
         player.openId=-1
@@ -379,6 +425,34 @@ function MoveCharacter(dif){
         player.x=300
         player.y=370
     }
+    else if(player.mapId==9 && 75<=x && x<=125 && y>=385){
+        player.mapId=10
+        player.monsterList=[]
+        player.summonList=[]
+        player.x=100
+        player.y=30
+    }
+    else if(player.mapId==10 && 75<=x && x<=125 && y<=15){
+        player.mapId=9
+        player.monsterList=[]
+        player.summonList=[]
+        player.x=100
+        player.y=370
+    }
+    else if(player.mapId==10 && 75<=x && x<=125 && y>=385){
+        player.mapId=11
+        player.monsterList=[]
+        player.summonList=[]
+        player.x=100
+        player.y=30
+    }
+    else if(player.mapId==11 && 75<=x && x<=125 && y<=15){
+        player.mapId=10
+        player.monsterList=[]
+        player.summonList=[]
+        player.x=100
+        player.y=370
+    }
     else if(player.x<5 || player.x>395 || player.y<5 || player.y>395){
         player.x=xx,player.y=yy
     }
@@ -392,6 +466,8 @@ function SummonMonster(){
     if(player.mapId==6 && player.monsterList.length<8)id=(random()<=0.95?3:4)
     if(player.mapId==7 && player.monsterList.length<8)id=5
     if(player.mapId==8 && player.monsterList.length<9)id=6
+    if(player.mapId==10 && player.monsterList.length<9)id=7
+    if(player.mapId==11 && player.monsterList.length<9)id=(random()<=0.66?8:9)
     if(id!=-1){
         let x=random()*(400-monsterSize[id][0]/2)+monsterSize[id][0]/2,y=random()*(400-monsterSize[id][1]/2)+monsterSize[id][1]/2
         let xxx={hp:0,hpmax:0,atk:0,def:0}
@@ -428,6 +504,9 @@ function MoveMonster(dif){
         let difMul=1
         if(player.monsterList[i].buffSeq.includes(0)){
             difMul*=0.7
+        }
+        if(player.monsterList[i].buffSeq.includes(5)){
+            difMul*=1.2
         }
         if(player.monsterList[i].inBubble==true){
             difMul*=0.5
@@ -485,7 +564,7 @@ function MoveMonster(dif){
         let dis=Math.sqrt((player.x-player.monsterList[i].x)*(player.x-player.monsterList[i].x)+(player.y-player.monsterList[i].y)*(player.y-player.monsterList[i].y))
         let moveMul=0.2
         if(dis<=monsterBasic[player.monsterList[i].id].hatredRadius && dis>=monsterBasic[player.monsterList[i].id].stopMoveRadius && player.inShadow==0){
-            moveMul=1
+            moveMul=(T.id==9?0:1)
             let delx=player.x-player.monsterList[i].x,dely=player.y-player.monsterList[i].y
             if(delx<0 && Math.abs(dely)<Math.abs(delx)){
                 player.monsterList[i].dir=0
@@ -499,9 +578,28 @@ function MoveMonster(dif){
             if(dely>0 && Math.abs(dely)>Math.abs(delx)){
                 player.monsterList[i].dir=3
             }
+
         }
         else if(dis<=monsterBasic[player.monsterList[i].id].stopMoveRadius){
-            continue
+            if(T.id==9){
+                let delx=player.x-player.monsterList[i].x,dely=player.y-player.monsterList[i].y
+                if(delx<0 && Math.abs(dely)<Math.abs(delx)){
+                    player.monsterList[i].dir=0
+                }
+                if(delx>0 && Math.abs(dely)<Math.abs(delx)){
+                    player.monsterList[i].dir=1
+                }
+                if(dely<0 && Math.abs(dely)>Math.abs(delx)){
+                    player.monsterList[i].dir=2
+                }
+                if(dely>0 && Math.abs(dely)>Math.abs(delx)){
+                    player.monsterList[i].dir=3
+                }
+                moveMul=-1
+            }
+            else{
+                continue
+            }
         }
         if(player.monsterList[i].dir==0)nx-=monsterBasic[player.monsterList[i].id].speed*dif*difMul*moveMul
         if(player.monsterList[i].dir==1)nx+=monsterBasic[player.monsterList[i].id].speed*dif*difMul*moveMul
@@ -588,7 +686,6 @@ function AttackMonster(dif){
                                         y:T.y,
                                         ex:player.x,
                                         ey:player.y,
-                                        src:"js/img/Weapon/WeaponSpear.png",
                                         realTime:0})
                 player.logs.push({type:3,
                                   subType:"weapon",
@@ -633,17 +730,127 @@ function AttackMonster(dif){
                                                      time:1,realTime:0})
                 player.logs.push({type:2,id:T.id,damage:0})
             }
+            else if(T.id==7){
+                player.monsterList[i].moveList.push({times:1,
+                                                     logsId:player.logs.length+player.minus,
+                                                     delx:0,
+                                                     dely:0,
+                                                     time:2,realTime:0})
+                player.logs.push({type:1,id:T.id,damage:0})
+                player.summonList.push({belong:"enemy",
+                                        type:"circle",
+                                        subType:42,
+                                        sizeScale:1,
+                                        x:T.x,
+                                        y:T.y,
+                                        r:Math.max(T.szx/2,T.szy/2)*Math.sqrt(2)+2+weaponSize[42][1]/2,
+                                        dir:CalcAngle(T.x,T.y,player.x,player.y)-90,
+                                        deldir:180,
+                                        damage:T.basic.atk,
+                                        logsId:player.logs.length+player.minus,
+                                        time:2,
+                                        realTime:0})
+                player.logs.push({type:3,subType:"sickle",id:T.id,damage:0})
+            }
+            else if(T.id==8){
+                player.monsterList[i].moveList.push({times:1,
+                                                     logsId:player.logs.length+player.minus,
+                                                     delx:0,
+                                                     dely:0,
+                                                     time:2,realTime:0})
+                player.logs.push({type:1,id:T.id,damage:0})
+                player.summonList.push({belong:"enemy",
+                                        type:"circle",
+                                        subType:42,
+                                        sizeScale:1.5,
+                                        x:T.x,
+                                        y:T.y,
+                                        r:Math.max(T.szx/2,T.szy/2)*Math.sqrt(2)+2+weaponSize[42][1],
+                                        dir:CalcAngle(T.x,T.y,player.x,player.y)-90,
+                                        deldir:180,
+                                        damage:T.basic.atk*(player.monsterList[i].buffSeq.includes(5)?1.2:1),
+                                        logsId:player.logs.length+player.minus,
+                                        time:2,
+                                        realTime:0})
+                player.logs.push({type:3,subType:"sickle",id:T.id,damage:0})
+            }
+            else if(T.id==9){
+                let ran=Math.floor(random()*5)
+                if(ran==0){
+                    let minDis=1000000,id=-1
+                    for(let j=0;j<player.monsterList.length;j++){
+                        if(i==j){
+                            continue
+                        }
+                        let TT=player.monsterList[j]
+                        let dis=Math.sqrt((TT.x-T.x)*(TT.x-T.x)+(TT.y-T.y)*(TT.y-T.y))
+                        if(dis<minDis){
+                            minDis=dis
+                            id=j
+                        }
+                    }
+                    let fd=-1
+                    for(let j=0;j<player.monsterList[id].buffList.length;j++){
+                        if(player.monsterList[id].buffList[j][0]==5){
+                            fd=j
+                            player.monsterList[id].buffList[j][1]+=5
+                        }
+                    }
+                    if(fd==-1){
+                        player.monsterList[id].buffSeq.push(5)
+                        player.monsterList[id].buffList.push([5,5])
+                    }
+                }
+                else if(ran==1){
+                    let minDis=1000000,id=-1
+                    for(let j=0;j<player.monsterList.length;j++){
+                        if(i==j){
+                            continue
+                        }
+                        let TT=player.monsterList[j]
+                        let dis=Math.sqrt((TT.x-T.x)*(TT.x-T.x)+(TT.y-T.y)*(TT.y-T.y))
+                        if(dis<minDis){
+                            minDis=dis
+                            id=j
+                        }
+                    }
+                    let fd=-1
+                    for(let j=0;j<player.monsterList[id].buffList.length;j++){
+                        if(player.monsterList[id].buffList[j][0]==6){
+                            fd=j
+                            player.monsterList[id].buffList[j][1]+=5
+                        }
+                    }
+                    if(fd==-1){
+                        player.monsterList[id].buffSeq.push(6)
+                        player.monsterList[id].buffList.push([6,5])
+                    }
+                }
+                else{
+                    let fd=-1
+                    for(let k=0;k<player.buffList.length;k++){
+                        if(player.buffList[k][0]==ran){
+                            fd=k
+                            player.buffList[k][1]+=5
+                        }
+                    }
+                    if(fd==-1){
+                        player.buffSeq.push(ran)
+                        player.buffList.push([ran,5])
+                    }
+                }
+            }
         }
     }
 }
-function IsInBetween(a, b, c) {
+function IsInBetween(a,b,c) {
 	if (Math.abs(a-b) < 0.000001 || Math.abs(b-c) < 0.000001) {
 		return false;
 	}
 	
 	return (a < b && b < c) || (c < b && b < a);
 }
-function LineIntersect(line1, line2)
+function LineIntersect(line1,line2)
 {
     if(line1[0].x>line1[1].x){
         let tmp={x:0,y:0}
@@ -693,7 +900,7 @@ function LineIntersect(line1, line2)
 	
 	return false;
 }
-function IsPointInRect(x, y, x1, y1, x2, y2, x3, y3, x4, y4) {
+function IsPointInRect(x,y,x1,y1,x2,y2,x3,y3,x4,y4) {
     function crossProduct(ax, ay, bx, by) {
         return ax * by - ay * bx;
     }
@@ -782,11 +989,11 @@ function CalcSummonDamage(dif,ctx){
                 let rlx,rly,dir=CalcAngle(T.x,T.y,T.ex,T.ey)
                 if(T.realTime<=1){
                     rlx=(T.ex-T.x)*T.realTime+T.x,rly=(T.ey-T.y)*T.realTime+T.y
-                    DrawImage(dir,rlx,rly,weaponSize[T.subType][0],weaponSize[T.subType][1],T.src,ctx)
+                    DrawImage(dir,rlx,rly,weaponSize[T.subType][0],weaponSize[T.subType][1],"js/img/Weapon/Weapon"+weaponName[T.subType]+".png",ctx)
                 }
                 else{
                     rlx=T.ex,rly=T.ey
-                    DrawImage(dir,rlx,rly,weaponSize[T.subType][0],weaponSize[T.subType][1],T.src,ctx)
+                    DrawImage(dir,rlx,rly,weaponSize[T.subType][0],weaponSize[T.subType][1],"js/img/Weapon/Weapon"+weaponName[T.subType]+".png",ctx)
                 }
                 if(RectangleIntersect({x:rlx,y:rly,ep:[dir],szx:weaponSize[T.subType][0],szy:weaponSize[T.subType][1]},{x:player.x,y:player.y,ep:[0],szx:playerSize[0],szy:playerSize[1]},ctx)){
                     let count=Math.max(0,Math.min(dif*(T.damage-player.def),player.hp))
@@ -844,7 +1051,7 @@ function CalcSummonDamage(dif,ctx){
                 }
             }
         }
-        if(T.type=="weapon"){
+        else if(T.type=="weapon"){
             if(T.realTime>=1){
                 player.summonList.splice(i,1)
                 i--
@@ -887,7 +1094,6 @@ function CalcSummonDamage(dif,ctx){
                 let y=player.monsterList[j]
                 if(RectangleIntersect({x:rlx,y:rly,ep:[dir],szx:weaponSize[T.weaponId][0],szy:weaponSize[T.weaponId][1]},{x:y.x,y:y.y,ep:[0],szx:y.szx,szy:y.szy},ctx)){
                     let damageMul=1
-                    if(player.weaponId==10)damageMul*=1.2
                     if(y.buffSeq.includes(1))damageMul*=1.2
                     let atkMul=T.mul
                     let count=Math.max(0,Math.min(dif*((T.weaponDamage+player.atk)*atkMul-y.basic.def)*damageMul,y.basic.hp))
@@ -943,7 +1149,7 @@ function CalcSummonDamage(dif,ctx){
                 }
             }
         }
-        if(T.type=="dash"){
+        else if(T.type=="dash"){
             if(T.realTime>=1){
                 player.summonList.splice(i,1)
                 i--
@@ -953,7 +1159,7 @@ function CalcSummonDamage(dif,ctx){
             DrawImage(0,T.x,T.y,playerSize[0],playerSize[1],T.src,ctx)
             ctx.globalAlpha=1
         }
-        if(T.type=="wave"){
+        else if(T.type=="wave"){
             if(T.subType=="boss0"){
                 if(T.realTime>=2.5){
                     player.summonList.splice(i,1)
@@ -977,7 +1183,7 @@ function CalcSummonDamage(dif,ctx){
                 }
             }
         }
-        if(T.type=="ball"){
+        else if(T.type=="ball"){
             if(T.belong=="enemy"){
                 if(T.realTime>=T.time){
                     player.summonList.splice(i,1)
@@ -1027,6 +1233,98 @@ function CalcSummonDamage(dif,ctx){
                 }
             }
         }
+        else if(T.type=="circle"){
+            if(T.belong=="enemy"){
+                if(T.realTime>=T.time){
+                    player.summonList.splice(i,1)
+                    i--
+                    continue
+                }
+                let rlx=T.x,rly=T.y,dir=T.dir+T.deldir*T.realTime/T.time
+                rlx+=Math.sin(dir*Math.PI/180)*T.r
+                rly-=Math.cos(dir*Math.PI/180)*T.r
+                DrawImage(dir,rlx,rly,weaponSize[T.subType][0]*T.sizeScale,weaponSize[T.subType][1]*T.sizeScale,"js/img/Weapon/Weapon"+weaponName[T.subType]+".png",ctx)
+                if(RectangleIntersect({x:rlx,y:rly,ep:[dir],szx:weaponSize[T.subType][0]*T.sizeScale,szy:weaponSize[T.subType][1]*T.sizeScale},{x:player.x,y:player.y,ep:[0],szx:playerSize[0],szy:playerSize[1]},ctx)){
+                    let count=Math.max(0,Math.min(dif*(T.damage-player.def),player.hp))
+                    player.hp-=count
+                    if(T.logsId>=player.minus){
+                        player.logs[T.logsId-player.minus].damage+=count
+                    }
+                    if(player.hp<=0.0001){
+                        Revive()
+                    }
+                }
+            }
+            else if(T.belong=="me"){
+                if(T.realTime>=T.time){
+                    player.summonList.splice(i,1)
+                    i--
+                    continue
+                }
+                let rlx=player.x,rly=player.y,dir=T.dir+T.deldir*T.realTime/T.time
+                rlx+=Math.sin(dir*Math.PI/180)*T.r
+                rly-=Math.cos(dir*Math.PI/180)*T.r
+                DrawImage(dir,rlx,rly,weaponSize[T.subType][0],weaponSize[T.subType][1],"js/img/Weapon/Weapon"+weaponName[T.subType]+".png",ctx)
+                for(let j=0;j<player.monsterList.length;j++){
+                    let y=player.monsterList[j]
+                    if(RectangleIntersect({x:rlx,y:rly,ep:[dir],szx:weaponSize[T.subType][0],szy:weaponSize[T.subType][1]},{x:y.x,y:y.y,ep:[0],szx:y.szx,szy:y.szy},ctx)){
+                        let damageMul=1
+                        if(y.buffSeq.includes(1))damageMul*=1.2
+                        let atkMul=T.mul
+                        let count=Math.max(0,Math.min(dif*((T.weaponDamage+player.atk)*atkMul-y.basic.def)*damageMul,y.basic.hp))
+                        player.monsterList[j].basic.hp-=count
+                        if(player.weaponEnchantingId==0){
+                            if(random()<=0.4*dif){
+                                let fd=-1
+                                for(let k=0;k<player.monsterList[j].buffList.length;k++){
+                                    if(player.monsterList[j].buffList[k][0]==0){
+                                        fd=k
+                                        player.monsterList[j].buffList[k][1]+=3
+                                    }
+                                }
+                                if(fd==-1){
+                                    player.monsterList[j].buffSeq.push(0)
+                                    player.monsterList[j].buffList.push([0,3])
+                                }
+                            }
+                        }
+                        if(player.weaponEnchantingId==3){
+                            if(random()<=0.5*dif){
+                                let fd=-1
+                                for(let k=0;k<player.monsterList[j].buffList.length;k++){
+                                    if(player.monsterList[j].buffList[k][0]==1){
+                                        fd=k
+                                        player.monsterList[j].buffList[k][1]+=2
+                                    }
+                                }
+                                if(fd==-1){
+                                    player.monsterList[j].buffSeq.push(1)
+                                    player.monsterList[j].buffList.push([1,2])
+                                }
+                            }
+                        }
+                        if(T.logsId>=player.minus){
+                            let hs=false
+                            for(let k=0;k<player.logs[T.logsId-player.minus].damageList.length;k++){
+                                if(player.logs[T.logsId-player.minus].damageList[k][0]==y.id){
+                                    player.logs[T.logsId-player.minus].damageList[k][1]+=count
+                                    hs=true
+                                    break
+                                }
+                            }
+                            if(!hs){
+                                player.logs[T.logsId-player.minus].damageList.push([y.id,count])
+                            }
+                        }
+                        if(player.monsterList[j].basic.hp<=0.00001){
+                            Drop(y.id)
+                            player.monsterList.splice(j,1)
+                            j--;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 function DrawMonster(ctx,dif){
@@ -1037,6 +1335,9 @@ function DrawMonster(ctx,dif){
         let difMul=1
         if(player.monsterList[i].buffSeq.includes(0)){
             difMul*=0.7
+        }
+        if(player.monsterList[i].buffSeq.includes(5)){
+            difMul*=1.2
         }
         if(player.monsterList[i].inBubble==true){
             difMul*=0.5
@@ -1055,6 +1356,9 @@ function DrawMonster(ctx,dif){
                 continue
             }
         }
+        if(T.buffSeq.includes(6)){
+            player.monsterList[i].basic.hp=Math.min(player.monsterList[i].basic.hp+50*dif,player.monsterList[i].basic.hpmax)
+        }
         if(T.id=="boss0"){
             let time=5
             if(T.stage==1)time-=1
@@ -1064,7 +1368,7 @@ function DrawMonster(ctx,dif){
             let src="js/img/Monster/BossScareCrow.png",src1="js/img/Monster/BossScareCrowArm.png"
             DrawImage(T.dir,T.x,T.y,T.szx,T.szy,src,ctx)
             if(T.inBubble==true){
-                ctx.fillStyle="rgba(0,0,255,0.1)";
+                ctx.fillStyle="rgba(0,0,255,0.2)";
                 ctx.fillRect(Math.round(T.x-T.szx/2),Math.round(T.y-T.szy/2),T.szx,T.szy);
             }
             let delx=0,dely=0
@@ -1089,12 +1393,18 @@ function DrawMonster(ctx,dif){
             ctx.lineTo(Math.round(T.x-T.szx/2+50*T.basic.hp/T.basic.hpmax),Math.round(T.y-T.szy/2-10))
             ctx.stroke()
             if(T.buffList.length>0){
-                let x=T.x-3.5-4.5*(Math.max(T.buffList.length-1,0)),y=T.y-T.szy/2-24
+                let x=T.x,y=T.y-T.szy/2-17
+                for(let j=0;j<T.buffList.length;j++){
+                    x-=buffSize[T.buffList[j][0]][0]/2
+                    if(j>0){
+                        x-=1
+                    }
+                }
                 for(let j=0;j<T.buffList.length;j++){
                     img=new Image()
                     img.src="js/img/Monster/Buff"+buffSrc[T.buffList[j][0]]+".png"
-                    ctx.drawImage(img,Math.round(x),Math.round(y),7,7)
-                    x+=9
+                    ctx.drawImage(img,Math.round(x),Math.round(y-buffSize[T.buffList[j][0]][1]),buffSize[T.buffList[j][0]][0],buffSize[T.buffList[j][0]][1])
+                    x+=2+buffSize[T.buffList[j][0]][0]
                 }
             }
             continue
@@ -1118,20 +1428,34 @@ function DrawMonster(ctx,dif){
         if(T.inLight==true){
             opacity=Math.max(opacity,0.5)
         }
-        img.src="js/img/Monster/Monster"+monsterName[T.id]+".png"
+        let src="js/img/Monster/Monster"+monsterName[T.id]+".png"
         ctx.globalAlpha=opacity
-        ctx.drawImage(img,T.x-T.szx/2,T.y-T.szy/2,T.szx,T.szy)
+        DrawImage(0,T.x,T.y,T.szx,T.szy,src,ctx)
         if(T.buffList.length>0){
-            let x=T.x-3.5-4.5*(Math.max(T.buffList.length-1,0)),y=T.y-T.szy/2-11
+            let x=T.x,y=T.y-T.szy/2-5
+            for(let j=0;j<T.buffList.length;j++){
+                x-=buffSize[T.buffList[j][0]][0]/2
+                if(j>0){
+                    x-=1
+                }
+            }
             for(let j=0;j<T.buffList.length;j++){
                 img=new Image()
                 img.src="js/img/Monster/Buff"+buffSrc[T.buffList[j][0]]+".png"
-                ctx.drawImage(img,Math.round(x),Math.round(y),7,7)
-                x+=9
+                    ctx.drawImage(img,Math.round(x),Math.round(y-buffSize[T.buffList[j][0]][1]),buffSize[T.buffList[j][0]][0],buffSize[T.buffList[j][0]][1])
+                x+=2+buffSize[T.buffList[j][0]][0]
             }
         }
+        if(player.monsterList[i].buffSeq.includes(5)){
+            ctx.fillStyle="rgba(255,127,39,0.2)";
+            ctx.fillRect(Math.round(T.x-T.szx/2),Math.round(T.y-T.szy/2),T.szx,T.szy);
+        }
+        if(player.monsterList[i].buffSeq.includes(6)){
+            ctx.fillStyle="rgba(181,230,29,0.2)";
+            ctx.fillRect(Math.round(T.x-T.szx/2),Math.round(T.y-T.szy/2),T.szx,T.szy);
+        }
         if(T.inBubble==true){
-            ctx.fillStyle="rgba(0,0,255,0.1)";
+            ctx.fillStyle="rgba(0,0,255,0.2)";
             ctx.fillRect(Math.round(T.x-T.szx/2),Math.round(T.y-T.szy/2),T.szx,T.szy);
         }
         if(dis<=monsterBasic[player.monsterList[i].id].hatredRadius && player.inShadow==0){
@@ -1158,23 +1482,23 @@ function ExpMaxCalc(){
     begin*=Math.pow(1.3,Math.max(0,Math.min(player.lv-80,20)))
     return begin
 }
-function Plus(id){
-    if(player.freePoint==0){
-        player.logs.push({type:999,str:"<text style='color:grey'>你的自由属性点不足</text>"})
+function Plus(id,num){
+    if(player.freePoint<num){
+        player.logs.push({type:999,str:"<text style='color:grey'>你的自由属性点不足"+format(num,0)+"点</text>"})
         return
     }
-    player.freePoint-=1
+    player.freePoint-=num
     if(id==0){
-        player.strength+=1
+        player.strength+=num
     }
     if(id==1){
-        player.vitality+=1
+        player.vitality+=num
     }
     if(id==2){
-        player.agile+=1
+        player.agile+=num
     }
     if(id==3){
-        player.wisdom+=1
+        player.wisdom+=num
     }
 }
 function Drop(id){
@@ -1228,6 +1552,8 @@ function Revive(){
     for(let i=0;i<3;i++){
         player.skillCoolDown[i]=0
     }
+    player.buffList=[]
+    player.buffSeq=[]
     player.monsterList=[]
     player.summonList=[]
     player.mapId=player.reviveMapId
@@ -1238,6 +1564,9 @@ function CalcMonsterDamage(dif){
         let difMul=1
         if(player.monsterList[i].buffSeq.includes(0)){
             difMul*=0.7
+        }
+        if(player.monsterList[i].buffSeq.includes(5)){
+            difMul*=1.2
         }
         if(player.monsterList[i].inBubble==true){
             difMul*=0.5
@@ -1309,6 +1638,11 @@ function CalcAttribute(dif){
     if(player.armId==21){wolfPart+=1}
     if(player.armorId==22){wolfPart+=1}
     if(player.legId==23){wolfPart+=1}
+    let orcPart=0
+    if(player.helmetId==37){orcPart+=1}
+    if(player.armId==38){orcPart+=1}
+    if(player.armorId==39){orcPart+=1}
+    if(player.legId==40){orcPart+=1}
     let partMul=[0,0,0,0,0]
     for(let i=0;i<5;i++){
         partMul[i]=1+0.05*player.equipmentUpLevel[i]
@@ -1317,15 +1651,20 @@ function CalcAttribute(dif){
     player.hpmax=10+10*player.realVitality
     if(player.helmetId==4){player.hpmax+=20*partMul[1]}
     if(player.helmetId==20){player.hpmax+=100*partMul[1]}
+    if(player.helmetId==37){player.hpmax+=200*partMul[1]}
     if(player.armId==5){player.hpmax+=10*partMul[3]}
     if(player.armId==21){player.hpmax+=50*partMul[3]}
+    if(player.armId==38){player.hpmax+=100*partMul[3]}
     if(player.armorId==6){player.hpmax+=10*partMul[2]}
     if(player.armorId==8){player.hpmax+=90*partMul[2]}
     if(player.armorId==22){player.hpmax+=50*partMul[2]}
+    if(player.armorId==39){player.hpmax+=100*partMul[2]}
     if(player.legId==7){player.hpmax+=10*partMul[4]}
     if(player.legId==23){player.hpmax+=50*partMul[4]}
+    if(player.legId==40){player.hpmax+=100*partMul[4]}
     if(player.armorEnchantingId==2){player.hpmax+=50}
-    if(wolfPart>=2)player.hpmax*=1.2
+    if(wolfPart>=4)player.hpmax*=1.2
+    if(orcPart>=4)player.hpmax*=1.3
 
     let hpRe=0
     if(player.mapId==1){hpRe+=1}
@@ -1334,28 +1673,45 @@ function CalcAttribute(dif){
     if(player.mapId==9){hpRe+=10}
     if(player.hpBottle[0]==28){hpRe+=10}
     if(player.hpBottle[0]==32){hpRe+=20}
+    if(player.helmetEnchantingId==7){hpRe+=1}
+    if(player.armorEnchantingId==7){hpRe+=1}
+    if(player.armEnchantingId==7){hpRe+=1}
+    if(player.legEnchantingId==7){hpRe+=1}
+    if(player.armorEnchantingId==8){hpRe*=2}
+    player.hpRe=hpRe
     player.hp+=hpRe*dif
     player.hp=Math.max(0,Math.min(player.hp,player.hpmax))
 
     player.atk=0+1*player.realStrength
     if(player.armId==5){player.atk+=1*partMul[3]}
     if(player.armId==21){player.atk+=5*partMul[3]}
+    if(player.armId==38){player.atk+=10*partMul[3]}
     if(player.legId==7){player.atk+=1*partMul[4]}
     if(player.legId==23){player.atk+=5*partMul[4]}
+    if(player.legId==40){player.atk+=10*partMul[4]}
+    if(player.buffSeq.includes(2)){player.atk*=0.7}
 
     player.def=0
     if(player.armorId==6){player.def+=1*partMul[2]}
     if(player.armorId==8){player.def+=9*partMul[2]}
     if(player.armorId==22){player.def+=5*partMul[2]}
+    if(player.armorId==39){player.def+=10*partMul[2]}
     if(player.helmetEnchantingId==4){player.def+=2}
     if(player.armorEnchantingId==4){player.def+=2}
     if(player.armEnchantingId==4){player.def+=2}
     if(player.legEnchantingId==4){player.def+=2}
+    if(player.helmetEnchantingId==7){player.def+=5}
+    if(player.armorEnchantingId==7){player.def+=5}
+    if(player.armEnchantingId==7){player.def+=5}
+    if(player.legEnchantingId==7){player.def+=5}
     if(wolfPart>=2)player.def*=1.2
+    if(orcPart>=2)player.def*=1.3
+    if(player.buffSeq.includes(3)){player.def*=0.5}
 
     player.movespeed=5
     if(player.shoesId==1){player.movespeed=30}
-    if(player.shoesId==9){player.movespeed=35}
+    if(player.shoesId==9){player.movespeed=32.5}
+    if(player.shoesId==41){player.movespeed=35}
     if(player.shoesEnchantingId==5){player.movespeed+=5}
     let xxx=(1+0.02*player.realAgile)
     if(xxx>1.2){
@@ -1373,9 +1729,15 @@ function CalcAttribute(dif){
             player.movespeed*=1.5
         }
     }
+    if(player.shoesId==41){
+        if(player.haveMonsterHatred){
+            player.movespeed*=1.25
+        }
+    }
     if(player.inBubble==true){
         player.movespeed*=0.5
     }
+    if(player.buffSeq.includes(4)){player.movespeed*=0.7}
 
     player.mpmax=0+5*player.realWisdom
     if(player.armorEnchantingId==2){player.mpmax+=20}
@@ -1397,10 +1759,11 @@ function CalcAttribute(dif){
     if(player.armEnchantingId==6){mpRe+=1,player.mpDamageMul*=1.1}
     if(player.legEnchantingId==6){mpRe+=1,player.mpDamageMul*=1.1}
     if(player.weaponId==26){player.mpDamageMul*=1.5}
+    player.mpRe=mpRe
     player.mpDamageMul*=(1+0.01*player.realWisdom)
     player.mp+=mpRe*dif
     if(player.skill24Switch==true){
-        player.mp-=5*dif
+        player.mp-=(5+1*player.skillLevel[24].lv)*dif
         if(player.mp<0){
             player.skill24Switch=false
         }
@@ -1409,10 +1772,9 @@ function CalcAttribute(dif){
 }
 const partName=["weaponEnchantingId","helmetEnchantingId","armorEnchantingId","armEnchantingId","legEnchantingId","shoesEnchantingId"]
 function DealSkill(dif){
-    let link=[2,15,16,24,26,27]
-    for(let iii=0;iii<link.length;iii++){
-        let i=link[iii]
-        if(player.skillLevel[i].mastery>=player.skillLevel[i].base*Math.pow(2,player.skillLevel[i].lv)){
+    for(let i in player.skillLevel){
+        player.skillLevel[i].lv=Math.min(player.skillLevel[i].lv,5)
+        if(player.skillLevel[i].mastery>=player.skillLevel[i].base*Math.pow(2,player.skillLevel[i].lv) && player.skillLevel[i].lv<5){
             player.skillLevel[i].mastery-=player.skillLevel[i].base*Math.pow(2,player.skillLevel[i].lv)
             player.skillLevel[i].lv+=1
         }
@@ -1439,13 +1801,12 @@ function DealSkill(dif){
                 if(player.helmetEnchantingId==1)dis+=5
                 let dir=player.rDir
                 if(player.skill24Switch==false){
-                    let mul=1+0.1*player.skillLevel[2].lv
+                    let mul=1+0.1*player.skillLevel[2].lv+(player.weaponId==10?0.2:0)
                     if(player.inShadow>0){
                         player.inShadow=0
                         if(player.weaponId==30){
                             mul*=(1.5+0.1*player.skillLevel[31].lv)
                         }
-                        mul*=(1.5+0.1*player.skillLevel[31].lv)
                     }
                     player.summonList.push({belong:"me",
                                             type:"weapon",
@@ -1576,6 +1937,32 @@ function DealSkill(dif){
                                         time:5+0.5*player.skillLevel[27].lv,
                                         realTime:0})
             }
+            if(player.skillId[i]==43 && player.skillCoolDown[i]==0 && player.mp>=20+4*player.skillLevel[43].lv){
+                player.skillCoolDown[i]=7
+                player.skillLevel[43].mastery+=1
+                player.mp-=20+4*player.skillLevel[43].lv
+                let id=player.weaponId
+                let dir=player.rDir
+                let mul=1.2+0.2*player.skillLevel[43].lv+(player.weaponId==42?0.3:0)
+                if(player.inShadow>0){
+                    player.inShadow=0
+                    if(player.weaponId==30){
+                        mul*=(1.5+0.1*player.skillLevel[31].lv)
+                    }
+                }
+                player.summonList.push({belong:"me",
+                                        type:"circle",
+                                        subType:player.weaponId,
+                                        r:Math.max(playerSize[0]/2,playerSize[1]/2)*Math.sqrt(2)+5+weaponSize[id][1]/2,
+                                        dir:dir-90,
+                                        deldir:180,
+                                        mul:mul,
+                                        weaponDamage:weaponDamage[id],
+                                        logsId:player.logs.length+player.minus,
+                                        time:2,
+                                        realTime:0})
+                player.logs.push({type:0,str:idToName[43],damageList:[]})
+            }
         }
         if(keys[key]==true){
             if(player.skillId[i]==16 && player.skillCoolDown[i]==0){
@@ -1599,10 +1986,6 @@ function DealSkill(dif){
                 player.mp-=10+2*player.skillLevel[34].lv
                 player.skillCoolDown[i]=15
                 player.skillLevel[34].mastery+=1
-                // player.summonList.push({type:"wave",
-                //                         subType:"light",
-                //                         radius:100+10*player.skillLevel[34].lv,
-                //                         realTime:0,})
                 player.inLight=10
             }
         }

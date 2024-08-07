@@ -1,4 +1,4 @@
-var keys = {
+var keys={
     w: false,a: false,s: false,d:false,
     j:false,k:false,l:false,u:false,
     n:false,m:false,
@@ -121,11 +121,15 @@ addLayer("tree-tab",{
         while(player.bagUnlock.length<idToName.length){
             player.bagUnlock.push(false)
         }
+        player.skillLevel[26].base=25
         if(player.skillLevel[31]===undefined){
             player.skillLevel[31]={mastery:0,base:100,lv:0,}
         }
         if(player.skillLevel[34]===undefined){
             player.skillLevel[34]={mastery:0,base:50,lv:0,}
+        }
+        if(player.skillLevel[43]===undefined){
+            player.skillLevel[43]={mastery:0,base:100,lv:0,}
         }
         //
 
@@ -275,20 +279,30 @@ addLayer("tree-tab",{
                     s+='等级: '+player.lv+"<br>"
                     s+='金币: '+format(player.money,1)+"<br>"
                     s+='经验值: '+format(player.exp,1)+"/"+format(ExpMaxCalc(),1)+"<br>"
-                    s+='生命值: '+format(player.hp,1)+"/"+format(player.hpmax,1)+"<br>"
-                    s+='魔力值: '+format(player.mp,1)+"/"+format(player.mpmax,1)+"<br>"
+                    s+='生命值: '+format(player.hp,1)+"/"+format(player.hpmax,1)+"<br>生命恢复 +"+format(player.hpRe,1)+"/s<br>"
+                    s+='魔力值: '+format(player.mp,1)+"/"+format(player.mpmax,1)+"<br>魔力恢复 +"+format(player.mpRe,1)+"/s<br>"
                     s+='魔法伤害倍数 x'+format(player.mpDamageMul,1)+"<br>"
-                    s+='攻击力: '+format(player.atk,1)+"<br>"
-                    s+='防御力: '+format(player.def,1)+"<br>"
-                    s+='移动速度: '+(player.inBubble==true?"<text style='color:lightblue'>":"")
-                    +format(player.movespeed,1)+"px/s<br>"+(player.inBubble==true?"</text>":"")
+                    s+='攻击力: '+(player.buffSeq.includes(2)?"<text style='color:purple'>":"")+format(player.atk,1)
+                    +(player.buffSeq.includes(2)?"</text>":"")+"<br>"
+                    s+='防御力: '+(player.buffSeq.includes(3)?"<text style='color:purple'>":"")+format(player.def,1)
+                    +(player.buffSeq.includes(3)?"</text>":"")+"<br>"
+                    s+='移动速度: '+(player.buffSeq.includes(4)?"<text style='color:purple'>":player.inBubble==true?"<text style='color:lightblue'>":"")
+                    +format(player.movespeed,1)+"px/s<br>"+(player.inBubble==true || player.buffSeq.includes(4)?"</text>":"")
                     s+='</div>'
                     s+='<table><tr>'
-                    s+='<td style="width:200px;text-align:left">力量: '+format((keys["shift"]==true?player.strength:player.realStrength))+"</td><td><button onclick='Plus(0)' style='margin-left:30px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"+"</td>"
-                    s+='<td style="width:200px;text-align:left">体质: '+format((keys["shift"]==true?player.vitality:player.realVitality))+"</td><td><button onclick='Plus(1)' style='margin-left:30px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"+"</td>"
+                    s+='<td style="width:200px;text-align:left">力量<br>'+format((keys["shift"]==true?player.strength:player.realStrength))+"</td>"
+                    +"<td><button onclick='Plus(0,1)' style='margin-left:10px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"
+                    +"<button onclick='Plus(0,10)' style='align-items: center;height:12px;width:21px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>++</button></td>"
+                    s+='<td style="width:200px;text-align:left">体质<br>'+format((keys["shift"]==true?player.vitality:player.realVitality))+"</td>"
+                    +"<td><button onclick='Plus(1,1)' style='margin-left:10px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"
+                    +"<button onclick='Plus(1,10)' style='align-items: center;height:12px;width:21px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>++</button></td>"
                     s+="</tr><tr>"
-                    s+='<td style="width:200px;text-align:left">敏捷: '+format((keys["shift"]==true?player.agile:player.realAgile))   +"</td><td><button onclick='Plus(2)' style='margin-left:30px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"+"</td>"
-                    s+='<td style="width:200px;text-align:left">智力: '+format((keys["shift"]==true?player.wisdom:player.realWisdom))  +"</td><td><button onclick='Plus(3)' style='margin-left:30px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"+"</td>"
+                    s+='<td style="width:200px;text-align:left">敏捷<br>'+format((keys["shift"]==true?player.agile:player.realAgile))+"</td>"
+                    +"<td><button onclick='Plus(2,1)' style='margin-left:10px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"
+                    +"<button onclick='Plus(2,10)' style='align-items: center;height:12px;width:21px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>++</button></td>"
+                    s+='<td style="width:200px;text-align:left">智力<br>'+format((keys["shift"]==true?player.wisdom:player.realWisdom))+"</td>"
+                    +"<td><button onclick='Plus(3,1)' style='margin-left:10px;align-items: center;height:12px;width:15px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>+</button>"
+                    +"<button onclick='Plus(3,10)' style='align-items: center;height:12px;width:21px;padding-bottom:14px;padding-top:0px;padding-left:2px;'>++</button></td>"
                     s+="</tr></table>"
                     s+="自由属性点: "+player.freePoint+"<br><br>"
                     if(player.killNumBoss0>0){
@@ -357,6 +371,9 @@ addLayer("tree-tab",{
                             if(player.logs[i].damage>0){
                                 if(player.logs[i].subType=='weapon'){
                                 s+=monsterDisplayName[player.logs[i].id]+' 投掷 '+weaponDisplayName[player.logs[i].weaponId]+' , 对你造成了 <text style="color:red">'+format(player.logs[i].damage,1)+"</text> 伤害"+"<br>"
+                                }
+                                else if(player.logs[i].subType=='sickle'){
+                                s+=monsterDisplayName[player.logs[i].id]+' 使用 半月斩 , 对你造成了 <text style="color:red">'+format(player.logs[i].damage,1)+"</text> 伤害"+"<br>"
                                 }
                             }
                         }
@@ -610,7 +627,7 @@ addLayer("tree-tab",{
                         if(player.bag[33]>0)mpId=33
                         str+="<td>"+(player.hpBottle[0]==-1?(hpId==-1?"无":idToName[hpId]):idToName[player.hpBottle[0]])+"<div style='border:2px solid black;height:50px;width:50px;background-image:url(js/img/Bag/Picture"
                         +(player.hpBottle[0]==-1?(hpId==-1?"Lock":bagPictureSrc[hpId]):bagPictureSrc[player.hpBottle[0]])+".png)'></div>"
-                        +"<div>[q]<br>"+(player.hpBottle[0]==-1?0:format(player.hpBottle[1],1))+"s<br>- "+(hpId==-1?0:format(player.bag[hpId],1))+" -<br></div></td><td style='width:23px'></td>"
+                        +"<div>[q]<br>"+(player.hpBottle[0]==-1?0:format(player.hpBottle[1],1))+"s<br>- "+(player.hpBottle[0]==-1?hpId==-1?0:format(player.bag[hpId],1):format(player.bag[player.hpBottle[0]],1))+" -<br></div></td><td style='width:23px'></td>"
                         for(let i=0;i<5;i++){
                             if(player.lv>=i*15){
                                 str+="<td>"+"Lv."+(player.skillId[i]==-1?0:player.skillLevel[player.skillId[i]].lv)+"<div style='margin-left:2px;border:2px solid black;height:50px;width:50px;background-image:url(js/img/Bag/Picture"
@@ -625,7 +642,7 @@ addLayer("tree-tab",{
                         str+="<td style='width:25px'></td>"
                         str+="<td>"+(player.mpBottle[0]==-1?(mpId==-1?"无":idToName[mpId]):idToName[player.mpBottle[0]])+"<div style='border:2px solid black;height:50px;width:50px;background-image:url(js/img/Bag/Picture"
                         +(player.mpBottle[0]==-1?(mpId==-1?"Lock":bagPictureSrc[mpId]):bagPictureSrc[player.mpBottle[0]])+".png)'></div>"
-                        +"<div>[e]<br>"+(player.mpBottle[0]==-1?0:format(player.mpBottle[1],1))+"s<br>- "+(mpId==-1?0:format(player.bag[mpId],1))+" -<br></div></td>"
+                        +"<div>[e]<br>"+(player.mpBottle[0]==-1?0:format(player.mpBottle[1],1))+"s<br>- "+(player.mpBottle[0]==-1?mpId==-1?0:format(player.bag[mpId],1):format(player.bag[player.mpBottle[0]],1))+" -<br></div></td>"
                         str+="</tr>"
                         str+="</table>"
                         str+="<table><tr>"
@@ -742,16 +759,35 @@ addLayer("tree-tab",{
                             if(player.armorId==22){wolfPart+=1}
                             if(player.legId==23){wolfPart+=1}
                             if(wolfPart<2){
-                                str+="<br><br>野狼套装 "+wolfPart+"/2 : 生命x1.2"
-                                str+="<br>野狼套装 "+wolfPart+"/4 : 防御x1.2"
+                                str+="<br><br>野狼套装 "+wolfPart+"/2 : 防御x1.2"
+                                str+="<br>野狼套装 "+wolfPart+"/4 : 生命x1.2"
                             }
                             else if(wolfPart<4){
-                                str+="<br><br><text style='color:lime'>野狼套装 2/2 : 生命x1.2</text>"
-                                str+="<br>野狼套装 "+wolfPart+"/4 : 防御x1.2"
+                                str+="<br><br><text style='color:lime'>野狼套装 2/2 : 防御x1.2</text>"
+                                str+="<br>野狼套装 "+wolfPart+"/4 : 生命x1.2"
                             }
                             else if(wolfPart==4){
-                                str+="<br><br><text style='color:lime'>野狼套装 2/2 : 生命x1.2</text>"
-                                str+="<br><text style='color:lime'>野狼套装 4/4 : 防御x1.2</text>"
+                                str+="<br><br><text style='color:lime'>野狼套装 2/2 : 防御x1.2</text>"
+                                str+="<br><text style='color:lime'>野狼套装 4/4 : 生命x1.2</text>"
+                            }
+                        }
+                        if(player.chooseBag>=37 && player.chooseBag<=40){
+                            let orcPart=0
+                            if(player.helmetId==37){orcPart+=1}
+                            if(player.armId==38){orcPart+=1}
+                            if(player.armorId==39){orcPart+=1}
+                            if(player.legId==40){orcPart+=1}
+                            if(orcPart<2){
+                                str+="<br><br>兽人套装 "+orcPart+"/2 : 防御x1.3"
+                                str+="<br>兽人套装 "+orcPart+"/4 : 生命x1.3"
+                            }
+                            else if(orcPart<4){
+                                str+="<br><br><text style='color:lime'>兽人套装 2/2 : 防御x1.3</text>"
+                                str+="<br>兽人套装 "+orcPart+"/4 : 生命x1.3"
+                            }
+                            else if(orcPart==4){
+                                str+="<br><br><text style='color:lime'>兽人套装 2/2 : 防御x1.3</text>"
+                                str+="<br><text style='color:lime'>兽人套装 4/4 : 生命x1.3</text>"
                             }
                         }
                         if(canEquip.includes(player.chooseBag)){
@@ -884,6 +920,7 @@ addLayer("tree-tab",{
                     str+="Lv.81~100 每级经验需求x1.3<br>"
                     str+="——————————————————————————————————————————————————————————————————<br>"
                     str+="每升一级获得2点自由属性点<br>"
+                    str+="+号每次加1点属性 , ++号每次加10点属性<br>"
                     str+="每一点力量提升1点攻击力<br>"
                     str+="每一点敏捷提升2%移动速度(有衰减)<br>"
                     str+="每一点体质提升10点生命值上限<br>"
