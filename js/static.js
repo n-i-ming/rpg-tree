@@ -63,8 +63,8 @@ function GetDisplay(){
     bagDisplay.push("使用后的"+format(30,1)+"s内 , 每秒持续恢复"+format(10,1)+"生命值")
     bagDisplay.push("使用后的"+format(30,1)+"s内 , 每秒持续恢复"+format(5 ,1)+"魔力值")
     bagDisplay.push("基础攻击力:"+format(30*partMul[0],1)+"<br>与技能-潜行配合有更强的效果<br><br>暗影刺客的武器")
-    bagDisplay.push("力量系技能<br>消耗魔力:"+format(10+2*player.skillLevel[15].lv,1)+"<br>"+format(2.5+0.5*player.skillLevel[15].lv,1)
-    +"s内怪物将无法发现你<br>当你主动攻击时将脱离潜行状态<br><br>装备匕首类武器时 , 下一次使用力量系技能时攻击x"+format(1.5+0.1*player.skillLevel[15].lv,1)+"<br>冷却:10s")
+    bagDisplay.push("力量系技能<br>消耗魔力:"+format(10+2*player.skillLevel[31].lv,1)+"<br>"+format(2.5+0.5*player.skillLevel[31].lv,1)
+    +"s内怪物将无法发现你<br>当你主动攻击时将脱离潜行状态<br><br>装备匕首类武器时 , 下一次使用力量系技能时攻击x"+format(1.5+0.1*player.skillLevel[31].lv,1)+"<br>冷却:10s")
     bagDisplay.push("使用后的"+format(30,1)+"s内 , 每秒持续恢复"+format(20,1)+"生命值")
     bagDisplay.push("使用后的"+format(30,1)+"s内 , 每秒持续恢复"+format(10,1)+"魔力值")
     bagDisplay.push("通用系技能<br>消耗魔力:"+format(10+2*player.skillLevel[34].lv,1)+"<br>照亮周身"

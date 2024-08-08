@@ -1980,7 +1980,7 @@ function DealSkill(dif){
                 player.mp-=10+2*player.skillLevel[31].lv
                 player.skillCoolDown[i]=10
                 player.skillLevel[31].mastery+=1
-                player.inShadow=2.5
+                player.inShadow=2.5+0.5*player.skillLevel[31].lv
             }
             if(player.skillId[i]==34 && player.skillCoolDown[i]==0 && player.mp>=10+2*player.skillLevel[34].lv){
                 player.mp-=10+2*player.skillLevel[34].lv
