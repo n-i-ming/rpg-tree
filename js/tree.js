@@ -780,7 +780,7 @@ addLayer("tree-tab",{
                     for(let i=0;i<6;i++){
                         if(player.lv>=i*15){
                         str+="<td><div onclick='TrySkillEquip("+i+")' style='border:2px solid "+(player.chooseSkillId==player.skillId[i]?"orange":"black")+";height:50px;width:50px;background-image:url(js/img/Bag/Picture"
-                        +(player.skillId[i]==-1?"Lock":bagPictureSrc[player.skillId[i]])+".png)'></div><div onclick='player.chooseSkillId="+(10000+i)+"' style='color:"+(player.chooseSkillId==(10000+i)?"orange":"black")+"'>["+player.skillKey[i]+"]</div></td>"
+                        +(player.skillId[i]==-1?"Lock":bagPictureSrc[player.skillId[i]])+".png)'></div><div onclick='TrySkillEquip("+(10000+i)+")' style='color:"+(player.chooseSkillId==(10000+i)?"orange":"black")+"'>["+player.skillKey[i]+"]</div></td>"
                         }
                     } 
                     str+="</tr></table><br>"
@@ -794,7 +794,9 @@ addLayer("tree-tab",{
                     return `
                     ${str}
                     <br><br><br>
-                    <div>-技能只能在安全区内更换-</div>
+                    <div>-点击第二排技能 再点击第一排技能槽 即可更换技能-</div>
+                    <div>-点击技能槽下方字母键 再点击想选用的按键 即可换绑技能按键-</div>
+                    <div>-技能和按键只能在安全区内更换-</div>
                     <div>-薄膜键盘上有的键不能同时按(作者亲测)-</div>
                     `
                 }]
