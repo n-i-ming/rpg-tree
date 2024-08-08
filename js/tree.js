@@ -14,7 +14,7 @@ function keydown(event) {
         keys["space"]=true;
         if(player.chooseSkillId>=10000){
             player.skillKey[player.chooseSkillId-10000]="space"
-            player.chooseSkillId=-1
+            player.chooseSkillId=-100
         }
     }
     else if (event.keyCode == 65) {
@@ -37,7 +37,7 @@ function keydown(event) {
         keys[strstrstr[event.keyCode-65]]=true
         if(player.chooseSkillId>=10000){
             player.skillKey[player.chooseSkillId-10000]=strstrstr[event.keyCode-65]
-            player.chooseSkillId=-1
+            player.chooseSkillId=-100
         }
     }
 }

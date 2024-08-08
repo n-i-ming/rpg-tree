@@ -204,7 +204,7 @@ function TrySkillEquip(id){
         player.logs.push({type:999,str:"请在安全区内更换技能"})
         return
     }
-    if(player.chooseSkillId==-100){
+    if(player.chooseSkillId==-100 || player.chooseSkillId>=10000){
         if(player.skillId[id]>=0){
             player.chooseSkillId=player.skillId[id]
         }
