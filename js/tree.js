@@ -111,6 +111,7 @@ function random() {
 addLayer("tree-tab",{
     update(diff){
         //update fix
+        document.getElementById("outer")["style"]["background-color"]="rgba(0,0,0,"+player.themeId*0.1+")"
         if(player.mapId!=5)player.boss0DamageList=[0,0,0,0]
         while(player.killNum.length<monsterName.length){
             player.killNum.push(0)

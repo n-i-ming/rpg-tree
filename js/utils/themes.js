@@ -1,7 +1,19 @@
 // ************ Themes ************
 const themes = {
+	0:"Default",
+	1:"10%",
+	2:"20%",
+	3:"30%",
+	4:"40%",
+	5:"50%",
 };
 const theme_names = {
+	0:"Default",
+	1:"10%",
+	2:"20%",
+	3:"30%",
+	4:"40%",
+	5:"50%",
 };
 function changeTheme() {
 	colors_theme = colors["default"];
@@ -12,9 +24,13 @@ function changeTheme() {
 	document.body.style.setProperty("--locked","#bf8f8f");
 }
 function getThemeName() {
-	return "Default";
+	return theme_names[player.themeId];
 }
 function switchTheme() {
+	player.themeId+=1
+	if(player.themeId>5){
+		player.themeId-=6
+	}
 	changeTheme();
 	resizeCanvas();
 }

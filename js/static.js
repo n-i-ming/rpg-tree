@@ -251,7 +251,7 @@ const equipmentUpPossibility=[1,0.9,0.8,0.7,0.6,0.5,0.45,0.4,0.35,0.3,0.28,0.26,
 ]
 
 function addedPlayerData() { return {
-    tmtmtm:Date.now()/1e3,logs:[],minus:0,mapId:0,
+    tmtmtm:Date.now()/1e3,logs:[],minus:0,mapId:0,themeId:0,
     seed1:Math.floor(Math.random()*4294967296),seed2:Math.floor(Math.random()*4294967296),
     seed3:Math.floor(Math.random()*4294967296),seed4:Math.floor(Math.random()*4294967296),
     strength:0,wisdom:0,agile:0,vitality:0,freePoint:0,
