@@ -62,7 +62,7 @@ function GetDisplay(){
     bagDisplay.push("魔法系技能<br>消耗魔力:"+format(10+2*player.skillLevel[27].lv,1)+"<br>攻击范围:"+format(100+10*player.skillLevel[27].lv,1)+"px 持续追踪<br>移动速度:"+format(30+10*player.skillLevel[27].lv,1)+"px/s<br>持续时间:"+format(5+0.5*player.skillLevel[27].lv,1)+"s<br>伤害系数:0%<br>附加效果:被触碰到的敌人速度x0.5<br>冷却:10s")
     bagDisplay.push("使用后的"+format(30,1)+"s内 , 每秒持续恢复"+format(10,1)+"生命值")
     bagDisplay.push("使用后的"+format(30,1)+"s内 , 每秒持续恢复"+format(5 ,1)+"魔力值")
-    bagDisplay.push("基础攻击力:"+format(30*partMul[0],1)+"<br>与技能-潜行配合有更强的效果<br><br>暗影刺客的武器")
+    bagDisplay.push("基础攻击力:"+format(30*partMul[0],1)+"<br>与技能-"+(player.bagUnlock[31]==true?"潜行":"??")+"配合有更强的效果<br><br>暗影刺客的武器")
     bagDisplay.push("力量系技能<br>消耗魔力:"+format(10+2*player.skillLevel[31].lv,1)+"<br>"+format(2.5+0.5*player.skillLevel[31].lv,1)
     +"s内怪物将无法发现你<br>当你主动攻击时将脱离潜行状态<br><br>装备匕首类武器时 , 下一次使用力量系技能时攻击x"+format(1.5+0.1*player.skillLevel[31].lv,1)+"<br>冷却:10s")
     bagDisplay.push("使用后的"+format(30,1)+"s内 , 每秒持续恢复"+format(20,1)+"生命值")
@@ -76,7 +76,7 @@ function GetDisplay(){
     bagDisplay.push("防御+"+format(10*partMul[2],1)+"<br>生命值+"+format(100*partMul[2],1)+"<br><br>由<text style='color:brown'>兽人皮革</text>制成的护甲")
     bagDisplay.push("攻击+"+format(10*partMul[4],1)+"<br>生命值+"+format(100*partMul[4],1)+"<br><br>由<text style='color:brown'>兽人皮革</text>制成的护腿")
     bagDisplay.push("基础移动速度:35px/s<br>特性-狂战:当你在任何怪物的仇恨范围内时,你的移动速度额外提升25%<br><br>由大量<text style='color:brown'>兽人皮革</text>制成的鞋子")
-    bagDisplay.push("基础攻击力:"+format(45*partMul[0],1)+"<br>技能-半月斩伤害系数+30%<br><br>兽人战士的武器")
+    bagDisplay.push("基础攻击力:"+format(45*partMul[0],1)+"<br>"+(player.bagUnlock[43]==true?"技能-半月斩伤害系数+30%":"与技能-???配合有更强的效果")+"<br><br>兽人战士的武器")
     bagDisplay.push("力量系技能<br>消耗魔力:"+format(20+4*player.skillLevel[43].lv,1)+"<br>伤害系数:"+format(120+20*player.skillLevel[43].lv+(player.weaponId==42?30:0),1)+"%<br>"
     +"伤害路径:向面朝方向挥出一个半圆 2s<br>冷却:7s")
     bagDisplay.push("蕴含兽人一族血脉之力的珠子,可以交给狂兽城城主或者用来附魔")

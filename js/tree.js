@@ -1,16 +1,21 @@
 var keys={
-    w: false,a: false,s: false,d:false,
-    j:false,k:false,l:false,u:false,
-    n:false,m:false,
-    q:false,e:false,
+    a:false,b:false,c:false,d:false,e:false,f:false,g:false,
+    h:false,i:false,j:false,k:false,l:false,m:false,n:false,
+    o:false,p:false,q:false,r:false,s:false,t:false,
+    u:false,v:false,w:false,x:false,y:false,z:false,
     space: false,shift:false,
 }
+const strstrstr="abcdefghijklmnopqrstuvwxyz"
 function keydown(event) {
     if(event.keyCode==16){
         keys["shift"]=true;
     }
     else if(event.keyCode==32){
         keys["space"]=true;
+        if(player.chooseSkillId>=10000){
+            player.skillKey[player.chooseSkillId-10000]="space"
+            player.chooseSkillId=-1
+        }
     }
     else if (event.keyCode == 65) {
         keys["a"] = true;
@@ -20,37 +25,20 @@ function keydown(event) {
         keys["d"] = true;
         player.dir=1;
     }
-    else if (event.keyCode == 69) {
-        keys["e"] = true;
-    }
-    else if (event.keyCode == 74) {
-        keys["j"] = true;
-    }
-    else if (event.keyCode == 75) {
-        keys["k"] = true;
-    }
-    else if (event.keyCode == 76) {
-        keys["l"] = true;
-    }
-    else if (event.keyCode == 77) {
-        keys["m"] = true;
-    }
-    else if (event.keyCode == 78) {
-        keys["n"] = true;
-    }
-    else if (event.keyCode == 81) {
-        keys["q"] = true;
-    }
     else if (event.keyCode == 83) {
         keys["s"] = true
         player.dir=3;
     }
-    else if (event.keyCode == 85) {
-        keys["u"] = true;
-    }
     else if (event.keyCode == 87) {
         keys["w"] = true;
         player.dir=2;
+    }
+    else if(event.keyCode>=65 && event.keyCode<=90){
+        keys[strstrstr[event.keyCode-65]]=true
+        if(player.chooseSkillId>=10000){
+            player.skillKey[player.chooseSkillId-10000]=strstrstr[event.keyCode-65]
+            player.chooseSkillId=-1
+        }
     }
 }
 function keyup(event){
@@ -60,41 +48,8 @@ function keyup(event){
     else if(event.keyCode==32){
         keys["space"]=false;
     }
-    else if (event.keyCode == 65) {
-        keys["a"] = false;
-    }
-    else if (event.keyCode == 68) {
-        keys["d"] = false;
-    }
-    else if (event.keyCode == 69) {
-        keys["e"] = false;
-    }
-    else if (event.keyCode == 74) {
-        keys["j"] = false;
-    }
-    else if (event.keyCode == 75) {
-        keys["k"] = false;
-    }
-    else if (event.keyCode == 76) {
-        keys["l"] = false;
-    }
-    else if (event.keyCode == 77) {
-        keys["m"] = false;
-    }
-    else if (event.keyCode == 78) {
-        keys["n"] = false;
-    }
-    else if (event.keyCode == 81) {
-        keys["q"] = false;
-    }
-    else if (event.keyCode == 83) {
-        keys["s"] = false;
-    }
-    else if (event.keyCode == 85) {
-        keys["u"] = false;
-    }
-    else if (event.keyCode == 87) {
-        keys["w"] = false;
+    else if(event.keyCode>=65 && event.keyCode<=90){
+        keys[strstrstr[event.keyCode-65]]=false
     }
 }
 function random() {
@@ -822,10 +777,10 @@ addLayer("tree-tab",{
             content:[
                 ["display-text",function(){
                     let str="<table><tr>"
-                    for(let i=0;i<5;i++){
+                    for(let i=0;i<6;i++){
                         if(player.lv>=i*15){
                         str+="<td><div onclick='TrySkillEquip("+i+")' style='border:2px solid "+(player.chooseSkillId==player.skillId[i]?"orange":"black")+";height:50px;width:50px;background-image:url(js/img/Bag/Picture"
-                        +(player.skillId[i]==-1?"Lock":bagPictureSrc[player.skillId[i]])+".png)'></div><div>["+player.skillKey[i]+"]</div></td>"
+                        +(player.skillId[i]==-1?"Lock":bagPictureSrc[player.skillId[i]])+".png)'></div><div onclick='player.chooseSkillId="+(10000+i)+"' style='color:"+(player.chooseSkillId==(10000+i)?"orange":"black")+"'>["+player.skillKey[i]+"]</div></td>"
                         }
                     } 
                     str+="</tr></table><br>"
